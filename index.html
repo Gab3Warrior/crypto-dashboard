@@ -379,6 +379,88 @@
     .token-symbol { font-size: 22px; }
   }
 
+  /* ── Price comparison panel ── */
+  .price-compare-panel {
+    background: var(--bg2);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    overflow: hidden;
+    margin-bottom: 1.5rem;
+  }
+
+  .price-compare-header {
+    padding: 0.75rem 1.1rem;
+    border-bottom: 1px solid var(--border);
+    font-family: var(--mono);
+    font-size: 10px;
+    letter-spacing: 0.15em;
+    color: var(--muted);
+    text-transform: uppercase;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .price-compare-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr;
+  }
+
+  @media (max-width: 600px) {
+    .price-compare-grid { grid-template-columns: 1fr; }
+  }
+
+  .price-compare-col {
+    padding: 1rem 1.1rem;
+    border-right: 1px solid var(--border);
+  }
+
+  .price-compare-col:last-child { border-right: none; }
+
+  .price-source {
+    font-family: var(--mono);
+    font-size: 10px;
+    letter-spacing: 0.12em;
+    color: var(--muted);
+    text-transform: uppercase;
+    margin-bottom: 6px;
+  }
+
+  .price-mxn {
+    font-family: var(--mono);
+    font-size: 22px;
+    font-weight: 700;
+    color: var(--text);
+    line-height: 1;
+    margin-bottom: 4px;
+  }
+
+  .price-usd-implied {
+    font-size: 12px;
+    color: var(--muted);
+    margin-bottom: 2px;
+  }
+
+  .spread-badge {
+    display: inline-block;
+    font-family: var(--mono);
+    font-size: 11px;
+    padding: 3px 8px;
+    border-radius: 3px;
+    margin-top: 4px;
+  }
+
+  .spread-badge.premium { background: rgba(248,113,113,0.12); color: var(--down); border: 1px solid rgba(248,113,113,0.3); }
+  .spread-badge.discount { background: rgba(52,211,153,0.12); color: var(--up); border: 1px solid rgba(52,211,153,0.3); }
+  .spread-badge.neutral-spread { background: var(--bg3); color: var(--muted); border: 1px solid var(--border2); }
+
+  .spread-explain {
+    font-size: 11px;
+    color: var(--muted);
+    margin-top: 3px;
+    font-style: italic;
+  }
+
   /* ── Loading state ── */
   .skeleton {
     background: linear-gradient(90deg, var(--bg3) 25%, var(--dim) 50%, var(--bg3) 75%);
@@ -521,10 +603,35 @@
       </div>
     </div>
 
-    <div class="onchain-panel">
-      <div class="onchain-panel-header">
+    <!-- Price comparison panel XRP -->
+    <div class="price-compare-panel">
+      <div class="price-compare-header">
         <div class="live-dot"></div>
-        XRP Ledger — métricas del día
+        Comparativa de precio — Bitso MXN vs CoinGecko USD
+      </div>
+      <div class="price-compare-grid">
+        <div class="price-compare-col">
+          <div class="price-source">Bitso (XRP/MXN)</div>
+          <div class="price-mxn" id="xrp-bitso-mxn">—</div>
+          <div class="price-usd-implied" id="xrp-bitso-usd-impl">≈ — USD implícito</div>
+          <div class="spread-explain">Precio real de compra/venta en México</div>
+        </div>
+        <div class="price-compare-col">
+          <div class="price-source">CoinGecko (USD × MXN)</div>
+          <div class="price-mxn" id="xrp-cg-mxn">—</div>
+          <div class="price-usd-implied" id="xrp-cg-usd">— USD directo</div>
+          <div class="spread-explain">Precio internacional convertido</div>
+        </div>
+        <div class="price-compare-col">
+          <div class="price-source">Spread Bitso vs Global</div>
+          <div class="price-mxn" id="xrp-spread-pct">—</div>
+          <span class="spread-badge neutral-spread" id="xrp-spread-badge">calculando...</span>
+          <div class="spread-explain" id="xrp-spread-explain">—</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="onchain-panel">
       </div>
       <div class="onchain-grid">
         <div class="onchain-col">
@@ -612,6 +719,34 @@
         <div class="metric-label">Supply circulante</div>
         <div class="metric-value" id="xlm-supply">—</div>
         <div class="metric-sub">de 50B max</div>
+      </div>
+    </div>
+
+    <!-- Price comparison panel XLM -->
+    <div class="price-compare-panel">
+      <div class="price-compare-header">
+        <div class="live-dot" style="background:var(--xlm)"></div>
+        Comparativa de precio — Bitso MXN vs CoinGecko USD
+      </div>
+      <div class="price-compare-grid">
+        <div class="price-compare-col">
+          <div class="price-source">Bitso (XLM/MXN)</div>
+          <div class="price-mxn" id="xlm-bitso-mxn">—</div>
+          <div class="price-usd-implied" id="xlm-bitso-usd-impl">≈ — USD implícito</div>
+          <div class="spread-explain">Precio real de compra/venta en México</div>
+        </div>
+        <div class="price-compare-col">
+          <div class="price-source">CoinGecko (USD × MXN)</div>
+          <div class="price-mxn" id="xlm-cg-mxn">—</div>
+          <div class="price-usd-implied" id="xlm-cg-usd">— USD directo</div>
+          <div class="spread-explain">Precio internacional convertido</div>
+        </div>
+        <div class="price-compare-col">
+          <div class="price-source">Spread Bitso vs Global</div>
+          <div class="price-mxn" id="xlm-spread-pct">—</div>
+          <span class="spread-badge neutral-spread" id="xlm-spread-badge">calculando...</span>
+          <div class="spread-explain" id="xlm-spread-explain">—</div>
+        </div>
       </div>
     </div>
 
@@ -817,6 +952,9 @@
         setEl(id + '-ath-date', athDate);
         setEl(id + '-supply', fmt(coin.circulating_supply));
 
+        // Store for spread calculation
+        cgPrices[id] = price;
+
         // Pills
         const pills = [];
         if (ch24 < -3) pills.push({ t: 'Caída 24h', cls: 'warn' });
@@ -911,6 +1049,106 @@
     }
   }
 
+  // ── Fetch Bitso prices (MXN) + spread vs CoinGecko ──
+  let cgPrices = {}; // store CoinGecko USD prices for spread calc
+
+  async function fetchBitso() {
+    const USD_MXN_FALLBACK = 17.15; // fallback tipo de cambio
+
+    // Fetch USD/MXN from exchangerate-api (free, no key)
+    let usdMxn = USD_MXN_FALLBACK;
+    try {
+      const fx = await fetch('https://api.exchangerate-api.com/v4/latest/USD');
+      const fxd = await fx.json();
+      if (fxd.rates && fxd.rates.MXN) usdMxn = fxd.rates.MXN;
+    } catch (e) {}
+
+    // Fetch Bitso XRP/MXN
+    try {
+      const [xrpR, xlmR] = await Promise.all([
+        fetch('https://api.bitso.com/v3/ticker/?book=xrp_mxn'),
+        fetch('https://api.bitso.com/v3/ticker/?book=xlm_mxn'),
+      ]);
+      const xrpD = await xrpR.json();
+      const xlmD = await xlmR.json();
+
+      if (xrpD.success) {
+        const bitsoMxn = parseFloat(xrpD.payload.last);
+        const bitsoUsdImpl = bitsoMxn / usdMxn;
+        const cgUsd = cgPrices['xrp'] || 0;
+        const cgMxn = cgUsd * usdMxn;
+
+        setEl('xrp-bitso-mxn', '$' + bitsoMxn.toFixed(2) + ' MXN');
+        setEl('xrp-bitso-usd-impl', '≈ $' + bitsoUsdImpl.toFixed(4) + ' USD implícito');
+        setEl('xrp-cg-mxn', cgMxn > 0 ? '$' + cgMxn.toFixed(2) + ' MXN' : '—');
+        setEl('xrp-cg-usd', cgUsd > 0 ? '$' + cgUsd.toFixed(4) + ' USD directo' : '—');
+
+        if (cgMxn > 0) {
+          const spread = ((bitsoMxn - cgMxn) / cgMxn) * 100;
+          const absSpread = Math.abs(spread).toFixed(2);
+          setEl('xrp-spread-pct', (spread >= 0 ? '+' : '') + spread.toFixed(2) + '%');
+          const badge = document.getElementById('xrp-spread-badge');
+          const explain = document.getElementById('xrp-spread-explain');
+          if (badge) {
+            if (Math.abs(spread) < 0.5) {
+              badge.className = 'spread-badge neutral-spread';
+              badge.textContent = 'Precio justo';
+              if (explain) explain.textContent = 'Bitso alineado con mercado global';
+            } else if (spread > 0) {
+              badge.className = 'spread-badge premium';
+              badge.textContent = 'Premium +' + absSpread + '%';
+              if (explain) explain.textContent = 'Bitso cobra ' + absSpread + '% más que el precio global';
+            } else {
+              badge.className = 'spread-badge discount';
+              badge.textContent = 'Descuento −' + absSpread + '%';
+              if (explain) explain.textContent = 'Bitso ' + absSpread + '% más barato que el precio global';
+            }
+          }
+        }
+      }
+
+      if (xlmD.success) {
+        const bitsoMxn = parseFloat(xlmD.payload.last);
+        const bitsoUsdImpl = bitsoMxn / usdMxn;
+        const cgUsd = cgPrices['xlm'] || 0;
+        const cgMxn = cgUsd * usdMxn;
+
+        setEl('xlm-bitso-mxn', '$' + bitsoMxn.toFixed(4) + ' MXN');
+        setEl('xlm-bitso-usd-impl', '≈ $' + bitsoUsdImpl.toFixed(5) + ' USD implícito');
+        setEl('xlm-cg-mxn', cgMxn > 0 ? '$' + cgMxn.toFixed(4) + ' MXN' : '—');
+        setEl('xlm-cg-usd', cgUsd > 0 ? '$' + cgUsd.toFixed(4) + ' USD directo' : '—');
+
+        if (cgMxn > 0) {
+          const spread = ((bitsoMxn - cgMxn) / cgMxn) * 100;
+          const absSpread = Math.abs(spread).toFixed(2);
+          setEl('xlm-spread-pct', (spread >= 0 ? '+' : '') + spread.toFixed(2) + '%');
+          const badge = document.getElementById('xlm-spread-badge');
+          const explain = document.getElementById('xlm-spread-explain');
+          if (badge) {
+            if (Math.abs(spread) < 0.5) {
+              badge.className = 'spread-badge neutral-spread';
+              badge.textContent = 'Precio justo';
+              if (explain) explain.textContent = 'Bitso alineado con mercado global';
+            } else if (spread > 0) {
+              badge.className = 'spread-badge premium';
+              badge.textContent = 'Premium +' + absSpread + '%';
+              if (explain) explain.textContent = 'Bitso cobra ' + absSpread + '% más que el precio global';
+            } else {
+              badge.className = 'spread-badge discount';
+              badge.textContent = 'Descuento −' + absSpread + '%';
+              if (explain) explain.textContent = 'Bitso ' + absSpread + '% más barato que el precio global';
+            }
+          }
+        }
+      }
+    } catch (e) {
+      ['xrp', 'xlm'].forEach(id => {
+        setEl(id + '-bitso-mxn', 'No disponible');
+        setEl(id + '-spread-pct', '—');
+      });
+    }
+  }
+
   // ── Main fetch ──
   async function fetchAll() {
     const btn = document.getElementById('refresh-btn');
@@ -925,6 +1163,9 @@
       fetchStellar(),
       fetchCharts()
     ]);
+
+    // Bitso después de CoinGecko para tener cgPrices disponible
+    await fetchBitso();
 
     const now = new Date().toLocaleTimeString('es-MX', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
     setEl('last-update', 'Actualizado ' + now);
