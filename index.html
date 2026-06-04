@@ -618,35 +618,35 @@
     <div class="onchain-panel">
       <div class="onchain-panel-header">
         <div class="live-dot" style="background:var(--xlm)"></div>
-        Stellar Network — métricas en vivo
+        Stellar Horizon — último ledger (vía Cloudflare Worker)
       </div>
       <div class="onchain-grid">
         <div class="onchain-col">
           <div class="onchain-row">
-            <span class="onchain-key">Ledger actual</span>
+            <span class="onchain-key">Ledger #</span>
             <span class="onchain-val" id="xlm-ledger">—</span>
           </div>
           <div class="onchain-row">
-            <span class="onchain-key">Volumen on-chain 24h</span>
-            <span class="onchain-val" id="xlm-vol-onchain">—</span>
+            <span class="onchain-key">Txs en ledger</span>
+            <span class="onchain-val" id="xlm-txs">—</span>
           </div>
           <div class="onchain-row">
-            <span class="onchain-key">Trades 24h (SDEX)</span>
-            <span class="onchain-val" id="xlm-trades">—</span>
+            <span class="onchain-key">Operaciones</span>
+            <span class="onchain-val" id="xlm-ops">—</span>
           </div>
         </div>
         <div class="onchain-col">
           <div class="onchain-row">
             <span class="onchain-key">Fee base</span>
-            <span class="onchain-val" id="xlm-fee">100 stroops</span>
+            <span class="onchain-val" id="xlm-fee">—</span>
           </div>
           <div class="onchain-row">
-            <span class="onchain-key">Tiempo de ledger</span>
-            <span class="onchain-val" id="xlm-close">~5 segundos</span>
+            <span class="onchain-key">Cierre hace</span>
+            <span class="onchain-val" id="xlm-close">—</span>
           </div>
           <div class="onchain-row">
-            <span class="onchain-key">Assets activos</span>
-            <span class="onchain-val" id="xlm-assets">—</span>
+            <span class="onchain-key">Max txs / ledger</span>
+            <span class="onchain-val" id="xlm-maxtx">—</span>
           </div>
         </div>
       </div>
@@ -880,43 +880,34 @@
   }
 
   // ── Fetch Stellar On-Chain ──
-  // Usa CoinGecko /coins/stellar para datos de red + constantes conocidas de Stellar
+  // Usa Cloudflare Worker como proxy para Stellar Horizon (sin CORS issues)
   async function fetchStellar() {
-    // Datos fijos conocidos y confiables de la red Stellar
-    setEl('xlm-fee', '100 stroops (~$0.00002)');
-    setEl('xlm-close', '~5 segundos');
+    const WORKER_URL = 'https://summer-surf-0d77.gaboramosguerrero.workers.dev';
 
-    // Intento 1: CoinGecko coin detail (mismo fetch que ya hacemos, sin CORS extra)
     try {
-      const r = await fetch('https://api.coingecko.com/api/v3/coins/stellar?localization=false&tickers=false&market_data=true&community_data=false&developer_data=false');
-      if (!r.ok) throw new Error('cg ' + r.status);
+      const r = await fetch(WORKER_URL);
+      if (!r.ok) throw new Error('worker ' + r.status);
       const d = await r.json();
+      const l = d._embedded.records[0];
 
-      // Ledger actual aproximado: Stellar cierra ~1 ledger cada 5s
-      // Desde genesis (2015-09-30) estimamos el ledger actual
+      setEl('xlm-ledger', '#' + parseInt(l.sequence).toLocaleString('es-MX'));
+      setEl('xlm-txs', l.transaction_count.toLocaleString('es-MX'));
+      setEl('xlm-ops', l.operation_count.toLocaleString('es-MX'));
+      setEl('xlm-fee', l.base_fee_in_stroops + ' stroops');
+      setEl('xlm-maxtx', l.max_tx_set_size.toLocaleString('es-MX'));
+      const secs = Math.round((new Date() - new Date(l.closed_at)) / 1000);
+      setEl('xlm-close', secs + 's atrás');
+    } catch (e) {
+      // Fallback con ledger estimado
       const genesis = new Date('2015-09-30T00:00:00Z');
-      const now = new Date();
-      const secsSinceGenesis = (now - genesis) / 1000;
-      const estLedger = Math.round(secsSinceGenesis / 5);
+      const estLedger = Math.round((new Date() - genesis) / 1000 / 5);
       setEl('xlm-ledger', '#' + estLedger.toLocaleString('es-MX') + ' (est.)');
-
-      // Volumen on-chain desde CoinGecko market data
-      const vol = d.market_data && d.market_data.total_volume && d.market_data.total_volume.usd;
-      if (vol) setEl('xlm-vol-onchain', '$' + fmt(vol) + ' USD');
-
-      // Datos de comunidad/ecosistema
-      setEl('xlm-trades', '~773K (SDEX)');
-      setEl('xlm-assets', '~5,500 activos');
-      return;
-    } catch (e) {}
-
-    // Fallback completo con valores de referencia conocidos
-    const genesis = new Date('2015-09-30T00:00:00Z');
-    const estLedger = Math.round((new Date() - genesis) / 1000 / 5);
-    setEl('xlm-ledger', '#' + estLedger.toLocaleString('es-MX') + ' (est.)');
-    setEl('xlm-vol-onchain', 'Ver stellarchain.io');
-    setEl('xlm-trades', '~773K diarios (SDEX)');
-    setEl('xlm-assets', '~5,500 activos');
+      setEl('xlm-txs', '—');
+      setEl('xlm-ops', '—');
+      setEl('xlm-fee', '100 stroops');
+      setEl('xlm-close', '~5s');
+      setEl('xlm-maxtx', '—');
+    }
   }
 
   // ── Main fetch ──
