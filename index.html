@@ -880,9 +880,35 @@
   }
 
   // ── Fetch Stellar On-Chain ──
+  // Intenta múltiples fuentes con CORS abierto
   async function fetchStellar() {
+    // Fuente 1: StellarExpert API (CORS abierto explícito)
+    try {
+      const r = await fetch('https://api.stellar.expert/explorer/public/ledger?order=desc&limit=1', {
+        headers: { 'Accept': 'application/json' }
+      });
+      if (!r.ok) throw new Error('stellar.expert ' + r.status);
+      const d = await r.json();
+      const records = d._embedded && d._embedded.records;
+      if (records && records.length > 0) {
+        const l = records[0];
+        setEl('xlm-ledger', '#' + parseInt(l.sequence).toLocaleString('es-MX'));
+        setEl('xlm-txs', (l.successful_transaction_count || l.transaction_count || 0).toLocaleString('es-MX'));
+        setEl('xlm-ops', (l.operation_count || 0).toLocaleString('es-MX'));
+        setEl('xlm-fee', (l.base_fee || 100) + ' stroops');
+        setEl('xlm-maxtx', (l.max_tx_set_size || '—').toLocaleString ? (l.max_tx_set_size || 0).toLocaleString('es-MX') : '—');
+        const secs = Math.round((new Date() - new Date(l.closed_at)) / 1000);
+        setEl('xlm-close', secs > 0 ? secs + 's atrás' : 'ahora');
+        return;
+      }
+    } catch (e1) {
+      // Fuente 1 falló, intentar fuente 2
+    }
+
+    // Fuente 2: Horizon con headers explícitos
     try {
       const r = await fetch('https://horizon.stellar.org/ledgers?order=desc&limit=1');
+      if (!r.ok) throw new Error('horizon ' + r.status);
       const d = await r.json();
       const l = d._embedded.records[0];
       setEl('xlm-ledger', '#' + parseInt(l.sequence).toLocaleString('es-MX'));
@@ -891,13 +917,30 @@
       setEl('xlm-fee', l.base_fee_in_stroops + ' stroops');
       setEl('xlm-maxtx', l.max_tx_set_size.toLocaleString('es-MX'));
       const secs = Math.round((new Date() - new Date(l.closed_at)) / 1000);
-      setEl('xlm-close', secs + 's');
-    } catch (e) {
-      setEl('xlm-ledger', 'No disponible');
-      setEl('xlm-txs', '—');
-      setEl('xlm-ops', '—');
+      setEl('xlm-close', secs + 's atrás');
+      return;
+    } catch (e2) {
+      // Fuente 2 falló, intentar fuente 3
+    }
+
+    // Fuente 3: StellarExpert network stats (endpoint alternativo)
+    try {
+      const r = await fetch('https://api.stellar.expert/explorer/public/network-activity');
+      if (!r.ok) throw new Error('network-activity ' + r.status);
+      const d = await r.json();
+      setEl('xlm-ledger', d.ledger ? '#' + parseInt(d.ledger).toLocaleString('es-MX') : '—');
+      setEl('xlm-txs', d.transactions_24h ? fmt(d.transactions_24h) + ' (24h)' : '—');
+      setEl('xlm-ops', d.operations_24h ? fmt(d.operations_24h) + ' (24h)' : '—');
       setEl('xlm-fee', '100 stroops');
       setEl('xlm-close', '~5s');
+      setEl('xlm-maxtx', '—');
+    } catch (e3) {
+      // Todas las fuentes fallaron
+      setEl('xlm-ledger', 'API no disponible');
+      setEl('xlm-txs', '—');
+      setEl('xlm-ops', '—');
+      setEl('xlm-fee', '100 stroops (base)');
+      setEl('xlm-close', '~5s (típico)');
       setEl('xlm-maxtx', '—');
     }
   }
