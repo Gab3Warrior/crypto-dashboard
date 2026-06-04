@@ -891,7 +891,8 @@
       const l = d._embedded.records[0];
 
       setEl('xlm-ledger', '#' + parseInt(l.sequence).toLocaleString('es-MX'));
-      setEl('xlm-txs', l.transaction_count.toLocaleString('es-MX'));
+      const totalTxs = (l.successful_transaction_count || 0) + (l.failed_transaction_count || 0);
+      setEl('xlm-txs', totalTxs.toLocaleString('es-MX') + ' (' + l.successful_transaction_count + ' ok / ' + l.failed_transaction_count + ' fail)');
       setEl('xlm-ops', l.operation_count.toLocaleString('es-MX'));
       setEl('xlm-fee', l.base_fee_in_stroops + ' stroops');
       setEl('xlm-maxtx', l.max_tx_set_size.toLocaleString('es-MX'));
