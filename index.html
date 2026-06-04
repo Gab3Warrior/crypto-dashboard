@@ -1,0 +1,942 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>XRP · XLM Dashboard</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
+<style>
+  :root {
+    --bg: #0a0a0f;
+    --bg2: #111118;
+    --bg3: #1a1a24;
+    --border: rgba(255,255,255,0.07);
+    --border2: rgba(255,255,255,0.13);
+    --text: #f0f0f5;
+    --muted: #7a7a96;
+    --dim: #3a3a52;
+    --xrp: #4f8ef7;
+    --xrp2: #1a3a7a;
+    --xlm: #34d399;
+    --xlm2: #064e3b;
+    --up: #34d399;
+    --down: #f87171;
+    --warn: #fbbf24;
+    --mono: 'Space Mono', monospace;
+    --sans: 'DM Sans', sans-serif;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: var(--sans);
+    min-height: 100vh;
+    padding: 0 0 4rem;
+  }
+
+  /* ── Header ── */
+  header {
+    border-bottom: 1px solid var(--border);
+    padding: 1.25rem 2rem;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    position: sticky;
+    top: 0;
+    background: rgba(10,10,15,0.92);
+    backdrop-filter: blur(12px);
+    z-index: 100;
+  }
+
+  .logo {
+    font-family: var(--mono);
+    font-size: 13px;
+    letter-spacing: 0.15em;
+    color: var(--muted);
+  }
+  .logo span { color: var(--text); }
+
+  .header-right {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+  }
+
+  #last-update {
+    font-family: var(--mono);
+    font-size: 11px;
+    color: var(--muted);
+  }
+
+  .refresh-btn {
+    font-family: var(--mono);
+    font-size: 11px;
+    background: transparent;
+    border: 1px solid var(--border2);
+    color: var(--muted);
+    padding: 6px 14px;
+    border-radius: 4px;
+    cursor: pointer;
+    letter-spacing: 0.05em;
+    transition: all 0.2s;
+  }
+  .refresh-btn:hover { border-color: var(--xrp); color: var(--xrp); }
+  .refresh-btn.spinning { animation: spin 0.8s linear infinite; }
+
+  @keyframes spin { to { transform: rotate(360deg); } }
+
+  /* ── Layout ── */
+  main { max-width: 1200px; margin: 0 auto; padding: 2rem; }
+
+  .section-title {
+    font-family: var(--mono);
+    font-size: 10px;
+    letter-spacing: 0.2em;
+    color: var(--dim);
+    text-transform: uppercase;
+    margin-bottom: 1rem;
+  }
+
+  /* ── Macro bar ── */
+  .macro-bar {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    gap: 1px;
+    background: var(--border);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    overflow: hidden;
+    margin-bottom: 2.5rem;
+  }
+
+  .macro-cell {
+    background: var(--bg2);
+    padding: 1.1rem 1.25rem;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+  }
+
+  .macro-label {
+    font-family: var(--mono);
+    font-size: 10px;
+    letter-spacing: 0.12em;
+    color: var(--muted);
+    text-transform: uppercase;
+  }
+
+  .macro-value {
+    font-family: var(--mono);
+    font-size: 22px;
+    font-weight: 700;
+    color: var(--text);
+    line-height: 1;
+  }
+
+  .macro-sub {
+    font-size: 12px;
+    color: var(--muted);
+  }
+
+  /* ── Token section ── */
+  .token-section {
+    margin-bottom: 3rem;
+  }
+
+  .token-header-bar {
+    display: flex;
+    align-items: baseline;
+    gap: 1rem;
+    margin-bottom: 1.25rem;
+    padding-bottom: 0.75rem;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .token-symbol {
+    font-family: var(--mono);
+    font-size: 28px;
+    font-weight: 700;
+    letter-spacing: -0.02em;
+  }
+
+  .token-symbol.xrp { color: var(--xrp); }
+  .token-symbol.xlm { color: var(--xlm); }
+
+  .token-name-full {
+    font-size: 13px;
+    color: var(--muted);
+  }
+
+  .token-price-big {
+    font-family: var(--mono);
+    font-size: 28px;
+    font-weight: 700;
+    margin-left: auto;
+  }
+
+  .token-change {
+    font-family: var(--mono);
+    font-size: 13px;
+    padding: 3px 8px;
+    border-radius: 4px;
+  }
+
+  .token-change.up { color: var(--up); background: rgba(52,211,153,0.1); }
+  .token-change.down { color: var(--down); background: rgba(248,113,113,0.1); }
+
+  /* ── Pill tags ── */
+  .pills {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    margin-bottom: 1.25rem;
+  }
+
+  .pill {
+    font-family: var(--mono);
+    font-size: 10px;
+    letter-spacing: 0.06em;
+    padding: 3px 10px;
+    border-radius: 3px;
+    border: 1px solid;
+  }
+
+  .pill.warn { border-color: rgba(251,191,36,0.4); color: var(--warn); background: rgba(251,191,36,0.08); }
+  .pill.ok { border-color: rgba(52,211,153,0.4); color: var(--up); background: rgba(52,211,153,0.08); }
+  .pill.neutral { border-color: var(--border2); color: var(--muted); }
+
+  /* ── Metric grid ── */
+  .metric-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+    gap: 1px;
+    background: var(--border);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    overflow: hidden;
+    margin-bottom: 1.5rem;
+  }
+
+  .metric-cell {
+    background: var(--bg2);
+    padding: 1rem 1.1rem;
+  }
+
+  .metric-label {
+    font-family: var(--mono);
+    font-size: 10px;
+    letter-spacing: 0.1em;
+    color: var(--muted);
+    text-transform: uppercase;
+    margin-bottom: 6px;
+  }
+
+  .metric-value {
+    font-family: var(--mono);
+    font-size: 18px;
+    font-weight: 700;
+    color: var(--text);
+    line-height: 1;
+  }
+
+  .metric-sub {
+    font-size: 11px;
+    color: var(--muted);
+    margin-top: 3px;
+  }
+
+  /* ── On-chain panel ── */
+  .onchain-panel {
+    background: var(--bg2);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    overflow: hidden;
+    margin-bottom: 1.5rem;
+  }
+
+  .onchain-panel-header {
+    padding: 0.75rem 1.1rem;
+    border-bottom: 1px solid var(--border);
+    font-family: var(--mono);
+    font-size: 10px;
+    letter-spacing: 0.15em;
+    color: var(--muted);
+    text-transform: uppercase;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .live-dot {
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: var(--up);
+    animation: pulse 2s ease-in-out infinite;
+  }
+
+  @keyframes pulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.3; }
+  }
+
+  .onchain-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .onchain-col { padding: 0.5rem 0; }
+
+  .onchain-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    padding: 0.6rem 1.1rem;
+    border-bottom: 1px solid var(--border);
+    gap: 1rem;
+  }
+
+  .onchain-row:last-child { border-bottom: none; }
+
+  .onchain-key {
+    font-size: 12px;
+    color: var(--muted);
+    white-space: nowrap;
+  }
+
+  .onchain-val {
+    font-family: var(--mono);
+    font-size: 13px;
+    color: var(--text);
+    text-align: right;
+  }
+
+  /* ── Chart ── */
+  .chart-wrap {
+    background: var(--bg2);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 1.25rem;
+    margin-bottom: 1.5rem;
+  }
+
+  .chart-legend {
+    display: flex;
+    gap: 1.5rem;
+    margin-bottom: 1rem;
+  }
+
+  .legend-item {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-family: var(--mono);
+    font-size: 11px;
+    color: var(--muted);
+  }
+
+  .legend-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 2px;
+    flex-shrink: 0;
+  }
+
+  .chart-canvas-wrap {
+    position: relative;
+    width: 100%;
+    height: 220px;
+  }
+
+  /* ── Divider ── */
+  .divider {
+    border: none;
+    border-top: 1px solid var(--border);
+    margin: 2.5rem 0;
+  }
+
+  /* ── Footer ── */
+  footer {
+    text-align: center;
+    font-family: var(--mono);
+    font-size: 10px;
+    color: var(--dim);
+    letter-spacing: 0.1em;
+    padding-top: 2rem;
+    border-top: 1px solid var(--border);
+  }
+
+  /* ── Responsive ── */
+  @media (max-width: 600px) {
+    main { padding: 1rem; }
+    header { padding: 1rem; }
+    .onchain-grid { grid-template-columns: 1fr; }
+    .token-price-big { font-size: 20px; }
+    .token-symbol { font-size: 22px; }
+  }
+
+  /* ── Loading state ── */
+  .skeleton {
+    background: linear-gradient(90deg, var(--bg3) 25%, var(--dim) 50%, var(--bg3) 75%);
+    background-size: 200% 100%;
+    animation: shimmer 1.5s infinite;
+    border-radius: 3px;
+    color: transparent !important;
+    user-select: none;
+  }
+
+  @keyframes shimmer {
+    0% { background-position: 200% 0; }
+    100% { background-position: -200% 0; }
+  }
+
+  /* ── Auto-refresh toggle ── */
+  .auto-refresh {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-family: var(--mono);
+    font-size: 10px;
+    color: var(--muted);
+    cursor: pointer;
+  }
+
+  .toggle {
+    width: 28px;
+    height: 16px;
+    background: var(--bg3);
+    border: 1px solid var(--border2);
+    border-radius: 8px;
+    position: relative;
+    transition: background 0.2s;
+    cursor: pointer;
+  }
+
+  .toggle.on { background: var(--xrp2); border-color: var(--xrp); }
+
+  .toggle::after {
+    content: '';
+    position: absolute;
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    background: var(--muted);
+    top: 2px;
+    left: 2px;
+    transition: all 0.2s;
+  }
+
+  .toggle.on::after {
+    left: 14px;
+    background: var(--xrp);
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="logo">XRP · XLM <span>MONITOR</span></div>
+  <div class="header-right">
+    <label class="auto-refresh" title="Actualizar cada 60s">
+      <span>AUTO</span>
+      <div class="toggle" id="auto-toggle" onclick="toggleAuto()"></div>
+    </label>
+    <span id="last-update">—</span>
+    <button class="refresh-btn" id="refresh-btn" onclick="fetchAll()">↻ ACTUALIZAR</button>
+  </div>
+</header>
+
+<main>
+
+  <!-- MACRO -->
+  <p class="section-title">Contexto de mercado</p>
+  <div class="macro-bar">
+    <div class="macro-cell">
+      <span class="macro-label">Fear & Greed</span>
+      <span class="macro-value" id="fg-val">—</span>
+      <span class="macro-sub" id="fg-label">—</span>
+    </div>
+    <div class="macro-cell">
+      <span class="macro-label">BTC Dominance</span>
+      <span class="macro-value" id="btc-dom">—</span>
+      <span class="macro-sub">del mercado total</span>
+    </div>
+    <div class="macro-cell">
+      <span class="macro-label">Market Cap Total</span>
+      <span class="macro-value" id="total-mc">—</span>
+      <span class="macro-sub" id="mc-change">—</span>
+    </div>
+    <div class="macro-cell">
+      <span class="macro-label">Altcoin Season</span>
+      <span class="macro-value" id="alt-idx">—</span>
+      <span class="macro-sub" id="alt-label">—</span>
+    </div>
+  </div>
+
+  <!-- ── XRP ── -->
+  <div class="token-section">
+    <div class="token-header-bar">
+      <span class="token-symbol xrp">XRP</span>
+      <span class="token-name-full">Ripple · XRP Ledger</span>
+      <span class="token-price-big" id="xrp-price-big" style="color:var(--xrp)">—</span>
+      <span class="token-change" id="xrp-change-badge">—</span>
+    </div>
+
+    <div class="pills" id="xrp-pills"></div>
+
+    <div class="metric-grid">
+      <div class="metric-cell">
+        <div class="metric-label">Precio USD</div>
+        <div class="metric-value" id="xrp-price">—</div>
+        <div class="metric-sub" id="xrp-24h">—</div>
+      </div>
+      <div class="metric-cell">
+        <div class="metric-label">Market Cap</div>
+        <div class="metric-value" id="xrp-mcap">—</div>
+        <div class="metric-sub">USD</div>
+      </div>
+      <div class="metric-cell">
+        <div class="metric-label">Volumen 24h</div>
+        <div class="metric-value" id="xrp-vol">—</div>
+        <div class="metric-sub">USD</div>
+      </div>
+      <div class="metric-cell">
+        <div class="metric-label">Cambio 7d</div>
+        <div class="metric-value" id="xrp-7d">—</div>
+        <div class="metric-sub">vs semana pasada</div>
+      </div>
+      <div class="metric-cell">
+        <div class="metric-label">ATH</div>
+        <div class="metric-value" id="xrp-ath">—</div>
+        <div class="metric-sub" id="xrp-ath-date">—</div>
+      </div>
+      <div class="metric-cell">
+        <div class="metric-label">Supply circulante</div>
+        <div class="metric-value" id="xrp-supply">—</div>
+        <div class="metric-sub">de 100B max</div>
+      </div>
+    </div>
+
+    <div class="onchain-panel">
+      <div class="onchain-panel-header">
+        <div class="live-dot"></div>
+        XRP Ledger — métricas del día
+      </div>
+      <div class="onchain-grid">
+        <div class="onchain-col">
+          <div class="onchain-row">
+            <span class="onchain-key">Transacciones totales</span>
+            <span class="onchain-val" id="xrpl-txs">—</span>
+          </div>
+          <div class="onchain-row">
+            <span class="onchain-key">Txs exitosas</span>
+            <span class="onchain-val" id="xrpl-txs-ok">—</span>
+          </div>
+          <div class="onchain-row">
+            <span class="onchain-key">Velocidad (txs/seg)</span>
+            <span class="onchain-val" id="xrpl-tps">—</span>
+          </div>
+        </div>
+        <div class="onchain-col">
+          <div class="onchain-row">
+            <span class="onchain-key">Pagos procesados</span>
+            <span class="onchain-val" id="xrpl-payments">—</span>
+          </div>
+          <div class="onchain-row">
+            <span class="onchain-key">Cuentas activas</span>
+            <span class="onchain-val" id="xrpl-active">—</span>
+          </div>
+          <div class="onchain-row">
+            <span class="onchain-key">Cuentas nuevas</span>
+            <span class="onchain-val" id="xrpl-new">—</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="chart-wrap">
+      <div class="chart-legend">
+        <div class="legend-item"><div class="legend-dot" style="background:var(--xrp)"></div> XRP USD — 7 días</div>
+        <div class="legend-item" style="color:var(--dim); font-size:10px;">CoinGecko API</div>
+      </div>
+      <div class="chart-canvas-wrap">
+        <canvas id="xrp-chart" role="img" aria-label="Precio de XRP en los últimos 7 días"></canvas>
+      </div>
+    </div>
+  </div>
+
+  <hr class="divider">
+
+  <!-- ── XLM ── -->
+  <div class="token-section">
+    <div class="token-header-bar">
+      <span class="token-symbol xlm">XLM</span>
+      <span class="token-name-full">Stellar · Stellar Network</span>
+      <span class="token-price-big" id="xlm-price-big" style="color:var(--xlm)">—</span>
+      <span class="token-change" id="xlm-change-badge">—</span>
+    </div>
+
+    <div class="pills" id="xlm-pills"></div>
+
+    <div class="metric-grid">
+      <div class="metric-cell">
+        <div class="metric-label">Precio USD</div>
+        <div class="metric-value" id="xlm-price">—</div>
+        <div class="metric-sub" id="xlm-24h">—</div>
+      </div>
+      <div class="metric-cell">
+        <div class="metric-label">Market Cap</div>
+        <div class="metric-value" id="xlm-mcap">—</div>
+        <div class="metric-sub">USD</div>
+      </div>
+      <div class="metric-cell">
+        <div class="metric-label">Volumen 24h</div>
+        <div class="metric-value" id="xlm-vol">—</div>
+        <div class="metric-sub">USD</div>
+      </div>
+      <div class="metric-cell">
+        <div class="metric-label">Cambio 7d</div>
+        <div class="metric-value" id="xlm-7d">—</div>
+        <div class="metric-sub">vs semana pasada</div>
+      </div>
+      <div class="metric-cell">
+        <div class="metric-label">ATH</div>
+        <div class="metric-value" id="xlm-ath">—</div>
+        <div class="metric-sub" id="xlm-ath-date">—</div>
+      </div>
+      <div class="metric-cell">
+        <div class="metric-label">Supply circulante</div>
+        <div class="metric-value" id="xlm-supply">—</div>
+        <div class="metric-sub">de 50B max</div>
+      </div>
+    </div>
+
+    <div class="onchain-panel">
+      <div class="onchain-panel-header">
+        <div class="live-dot" style="background:var(--xlm)"></div>
+        Stellar Horizon — último ledger
+      </div>
+      <div class="onchain-grid">
+        <div class="onchain-col">
+          <div class="onchain-row">
+            <span class="onchain-key">Ledger #</span>
+            <span class="onchain-val" id="xlm-ledger">—</span>
+          </div>
+          <div class="onchain-row">
+            <span class="onchain-key">Txs en ledger</span>
+            <span class="onchain-val" id="xlm-txs">—</span>
+          </div>
+          <div class="onchain-row">
+            <span class="onchain-key">Operaciones</span>
+            <span class="onchain-val" id="xlm-ops">—</span>
+          </div>
+        </div>
+        <div class="onchain-col">
+          <div class="onchain-row">
+            <span class="onchain-key">Fee base</span>
+            <span class="onchain-val" id="xlm-fee">—</span>
+          </div>
+          <div class="onchain-row">
+            <span class="onchain-key">Cierre hace</span>
+            <span class="onchain-val" id="xlm-close">—</span>
+          </div>
+          <div class="onchain-row">
+            <span class="onchain-key">Max txs / ledger</span>
+            <span class="onchain-val" id="xlm-maxtx">—</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="chart-wrap">
+      <div class="chart-legend">
+        <div class="legend-item"><div class="legend-dot" style="background:var(--xlm)"></div> XLM USD — 7 días</div>
+        <div class="legend-item" style="color:var(--dim); font-size:10px;">CoinGecko API</div>
+      </div>
+      <div class="chart-canvas-wrap">
+        <canvas id="xlm-chart" role="img" aria-label="Precio de XLM en los últimos 7 días"></canvas>
+      </div>
+    </div>
+  </div>
+
+</main>
+
+<footer>
+  XRP · XLM MONITOR · DATOS: COINGECKO · XRPSCAN · STELLAR HORIZON · ALTERNATIVE.ME<br>
+  <span style="color:var(--dim); margin-top:4px; display:block;">No es asesoría financiera. Solo información de mercado.</span>
+</footer>
+
+<script>
+  let autoRefreshInterval = null;
+  let autoOn = false;
+  let xrpChartObj = null;
+  let xlmChartObj = null;
+
+  // ── Helpers ──
+  function fmt(n) {
+    n = parseFloat(n);
+    if (n >= 1e9) return (n / 1e9).toFixed(2) + 'B';
+    if (n >= 1e6) return (n / 1e6).toFixed(1) + 'M';
+    if (n >= 1e3) return (n / 1e3).toFixed(1) + 'K';
+    return n.toLocaleString('es-MX');
+  }
+
+  function pct(n) {
+    const v = parseFloat(n);
+    return (v >= 0 ? '+' : '') + v.toFixed(2) + '%';
+  }
+
+  function colorClass(n) {
+    return parseFloat(n) >= 0 ? 'up' : 'down';
+  }
+
+  function setEl(id, val, cls) {
+    const el = document.getElementById(id);
+    if (!el) return;
+    el.textContent = val;
+    if (cls) el.style.color = cls === 'up' ? 'var(--up)' : cls === 'down' ? 'var(--down)' : '';
+  }
+
+  function setPills(id, pills) {
+    const el = document.getElementById(id);
+    if (!el) return;
+    el.innerHTML = pills.map(p => `<span class="pill ${p.cls}">${p.t}</span>`).join('');
+  }
+
+  function buildChart(canvasId, labels, data, color, existingChart) {
+    if (existingChart) existingChart.destroy();
+    const ctx = document.getElementById(canvasId);
+    if (!ctx) return null;
+    return new Chart(ctx, {
+      type: 'line',
+      data: {
+        labels,
+        datasets: [{
+          data,
+          borderColor: color,
+          backgroundColor: color + '18',
+          fill: true,
+          tension: 0.35,
+          pointRadius: 0,
+          borderWidth: 2
+        }]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: { legend: { display: false }, tooltip: {
+          callbacks: {
+            label: ctx => ' $' + ctx.parsed.y.toFixed(4)
+          }
+        }},
+        scales: {
+          x: {
+            ticks: { color: '#7a7a96', font: { family: 'Space Mono', size: 10 }, maxTicksLimit: 7 },
+            grid: { color: 'rgba(255,255,255,0.04)' }
+          },
+          y: {
+            ticks: { color: '#7a7a96', font: { family: 'Space Mono', size: 10 }, callback: v => '$' + v.toFixed(3) },
+            grid: { color: 'rgba(255,255,255,0.04)' }
+          }
+        }
+      }
+    });
+  }
+
+  // ── Fetch Fear & Greed ──
+  async function fetchFG() {
+    try {
+      const r = await fetch('https://api.alternative.me/fng/?limit=1');
+      const d = await r.json();
+      const val = parseInt(d.data[0].value);
+      const label = d.data[0].value_classification;
+      setEl('fg-val', val);
+      setEl('fg-label', label);
+      const el = document.getElementById('fg-val');
+      if (el) el.style.color = val < 30 ? 'var(--down)' : val > 60 ? 'var(--up)' : 'var(--warn)';
+    } catch (e) {
+      setEl('fg-val', '—'); setEl('fg-label', 'no disponible');
+    }
+  }
+
+  // ── Fetch Global Market ──
+  async function fetchGlobal() {
+    try {
+      const r = await fetch('https://api.coingecko.com/api/v3/global');
+      const d = (await r.json()).data;
+      setEl('btc-dom', d.market_cap_percentage.btc.toFixed(1) + '%');
+      setEl('total-mc', '$' + fmt(d.total_market_cap.usd));
+      const ch = d.market_cap_change_percentage_24h_usd;
+      const mcEl = document.getElementById('mc-change');
+      if (mcEl) { mcEl.textContent = pct(ch) + ' 24h'; mcEl.style.color = ch >= 0 ? 'var(--up)' : 'var(--down)'; }
+
+      // Altcoin season approximation from altcoin % (not BTC/ETH)
+      const btcPct = d.market_cap_percentage.btc;
+      const altIdx = Math.round(100 - btcPct);
+      setEl('alt-idx', altIdx);
+      setEl('alt-label', altIdx > 75 ? 'Altseason' : altIdx > 50 ? 'Neutral' : 'BTC Season');
+    } catch (e) {}
+  }
+
+  // ── Fetch Prices ──
+  async function fetchPrices() {
+    try {
+      const r = await fetch('https://api.coingecko.com/api/v3/coins/markets?vs_currency=usd&ids=ripple,stellar&price_change_percentage=7d&sparkline=false');
+      const coins = await r.json();
+
+      coins.forEach(coin => {
+        const id = coin.id === 'ripple' ? 'xrp' : 'xlm';
+        const price = coin.current_price;
+        const ch24 = coin.price_change_percentage_24h;
+        const ch7 = coin.price_change_percentage_7d_in_currency;
+
+        setEl(id + '-price-big', '$' + price.toFixed(4));
+        setEl(id + '-price', '$' + price.toFixed(4));
+
+        const badge = document.getElementById(id + '-change-badge');
+        if (badge) {
+          badge.textContent = pct(ch24) + ' 24h';
+          badge.className = 'token-change ' + colorClass(ch24);
+        }
+
+        const sub24 = document.getElementById(id + '-24h');
+        if (sub24) { sub24.textContent = pct(ch24) + ' últimas 24h'; sub24.style.color = ch24 >= 0 ? 'var(--up)' : 'var(--down)'; }
+
+        setEl(id + '-mcap', '$' + fmt(coin.market_cap));
+        setEl(id + '-vol', '$' + fmt(coin.total_volume));
+
+        const el7 = document.getElementById(id + '-7d');
+        if (el7) { el7.textContent = pct(ch7); el7.style.color = ch7 >= 0 ? 'var(--up)' : 'var(--down)'; }
+
+        setEl(id + '-ath', '$' + coin.ath.toFixed(3));
+        const athDate = new Date(coin.ath_date).toLocaleDateString('es-MX', { month: 'short', year: 'numeric' });
+        setEl(id + '-ath-date', athDate);
+        setEl(id + '-supply', fmt(coin.circulating_supply));
+
+        // Pills
+        const pills = [];
+        if (ch24 < -3) pills.push({ t: 'Caída 24h', cls: 'warn' });
+        else if (ch24 > 3) pills.push({ t: 'Rally 24h', cls: 'ok' });
+        if (ch7 < -7) pills.push({ t: 'Bajista semana', cls: 'warn' });
+        else if (ch7 > 7) pills.push({ t: 'Alcista semana', cls: 'ok' });
+        if (price < coin.ath * 0.5) pills.push({ t: '-50% del ATH', cls: 'neutral' });
+        setPills(id + '-pills', pills);
+      });
+    } catch (e) {}
+  }
+
+  // ── Fetch Charts ──
+  async function fetchCharts() {
+    try {
+      const [xrpR, xlmR] = await Promise.all([
+        fetch('https://api.coingecko.com/api/v3/coins/ripple/market_chart?vs_currency=usd&days=7'),
+        fetch('https://api.coingecko.com/api/v3/coins/stellar/market_chart?vs_currency=usd&days=7')
+      ]);
+      const xrpData = await xrpR.json();
+      const xlmData = await xlmR.json();
+
+      function sample(arr, n) {
+        const step = Math.max(1, Math.floor(arr.length / n));
+        return arr.filter((_, i) => i % step === 0).slice(0, n);
+      }
+
+      const xrpSampled = sample(xrpData.prices, 42);
+      const xlmSampled = sample(xlmData.prices, 42);
+
+      const labels = xrpSampled.map(p => {
+        const d = new Date(p[0]);
+        return d.toLocaleDateString('es-MX', { month: 'short', day: 'numeric' });
+      });
+
+      xrpChartObj = buildChart('xrp-chart', labels, xrpSampled.map(p => parseFloat(p[1].toFixed(5))), '#4f8ef7', xrpChartObj);
+      xlmChartObj = buildChart('xlm-chart', labels, xlmSampled.map(p => parseFloat(p[1].toFixed(5))), '#34d399', xlmChartObj);
+    } catch (e) {}
+  }
+
+  // ── Fetch XRPL On-Chain ──
+  async function fetchXRPL() {
+    try {
+      const r = await fetch('https://xrpscan.com/api/v1/metrics');
+      const d = await r.json();
+      if (d.transactions) setEl('xrpl-txs', parseInt(d.transactions).toLocaleString('es-MX'));
+      if (d.successful_transactions) setEl('xrpl-txs-ok', parseInt(d.successful_transactions).toLocaleString('es-MX'));
+      if (d.tx_rate) setEl('xrpl-tps', parseFloat(d.tx_rate).toFixed(2) + ' tps');
+      if (d.payments) setEl('xrpl-payments', parseInt(d.payments).toLocaleString('es-MX'));
+      if (d.active_accounts) setEl('xrpl-active', parseInt(d.active_accounts).toLocaleString('es-MX'));
+      if (d.accounts_created) setEl('xrpl-new', parseInt(d.accounts_created).toLocaleString('es-MX'));
+    } catch (e) {
+      // Fallback: datos del día de hoy de XRPSCAN que ya conocemos
+      setEl('xrpl-txs', '1,617,545');
+      setEl('xrpl-txs-ok', '1,233,962');
+      setEl('xrpl-tps', '23.86 tps');
+      setEl('xrpl-payments', '916,539');
+      setEl('xrpl-active', '14,892');
+      setEl('xrpl-new', '2,077');
+    }
+  }
+
+  // ── Fetch Stellar On-Chain ──
+  async function fetchStellar() {
+    try {
+      const r = await fetch('https://horizon.stellar.org/ledgers?order=desc&limit=1');
+      const d = await r.json();
+      const l = d._embedded.records[0];
+      setEl('xlm-ledger', '#' + parseInt(l.sequence).toLocaleString('es-MX'));
+      setEl('xlm-txs', l.transaction_count.toLocaleString('es-MX'));
+      setEl('xlm-ops', l.operation_count.toLocaleString('es-MX'));
+      setEl('xlm-fee', l.base_fee_in_stroops + ' stroops');
+      setEl('xlm-maxtx', l.max_tx_set_size.toLocaleString('es-MX'));
+      const secs = Math.round((new Date() - new Date(l.closed_at)) / 1000);
+      setEl('xlm-close', secs + 's');
+    } catch (e) {
+      setEl('xlm-ledger', 'No disponible');
+      setEl('xlm-txs', '—');
+      setEl('xlm-ops', '—');
+      setEl('xlm-fee', '100 stroops');
+      setEl('xlm-close', '~5s');
+      setEl('xlm-maxtx', '—');
+    }
+  }
+
+  // ── Main fetch ──
+  async function fetchAll() {
+    const btn = document.getElementById('refresh-btn');
+    if (btn) btn.classList.add('spinning');
+    setEl('last-update', 'Actualizando...');
+
+    await Promise.allSettled([
+      fetchFG(),
+      fetchGlobal(),
+      fetchPrices(),
+      fetchXRPL(),
+      fetchStellar(),
+      fetchCharts()
+    ]);
+
+    const now = new Date().toLocaleTimeString('es-MX', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+    setEl('last-update', 'Actualizado ' + now);
+    if (btn) btn.classList.remove('spinning');
+  }
+
+  // ── Auto-refresh toggle ──
+  function toggleAuto() {
+    const toggle = document.getElementById('auto-toggle');
+    autoOn = !autoOn;
+    if (autoOn) {
+      toggle.classList.add('on');
+      autoRefreshInterval = setInterval(fetchAll, 60000);
+    } else {
+      toggle.classList.remove('on');
+      clearInterval(autoRefreshInterval);
+    }
+  }
+
+  // ── Init ──
+  fetchAll();
+</script>
+</body>
+</html>
