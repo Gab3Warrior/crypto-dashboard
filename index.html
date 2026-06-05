@@ -1066,8 +1066,8 @@
     // Fetch Bitso XRP/MXN
     try {
       const [xrpR, xlmR] = await Promise.all([
-        fetch('https://api.bitso.com/v3/ticker/?book=xrp_mxn'),
-        fetch('https://api.bitso.com/v3/ticker/?book=xlm_mxn'),
+        fetch('https://summer-surf-0d77.gaboramosguerrero.workers.dev/bitso?book=xrp_mxn'),
+        fetch('https://summer-surf-0d77.gaboramosguerrero.workers.dev/bitso?book=xlm_mxn'),
       ]);
       const xrpD = await xrpR.json();
       const xlmD = await xlmR.json();
