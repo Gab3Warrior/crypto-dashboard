@@ -1168,8 +1168,10 @@
     // Bitso después de CoinGecko para tener cgPrices disponible
     await fetchBitso();
 
-    const now = new Date().toLocaleTimeString('es-MX', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
-    setEl('last-update', 'Actualizado ' + now);
+    const now = new Date();
+    const fecha = now.toLocaleDateString('es-MX', { weekday: 'short', day: 'numeric', month: 'short', year: 'numeric' });
+    const hora = now.toLocaleTimeString('es-MX', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+    setEl('last-update', fecha + ' · ' + hora);
     if (btn) btn.classList.remove('spinning');
   }
 
