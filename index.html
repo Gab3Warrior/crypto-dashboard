@@ -730,7 +730,7 @@
       </div>
       <div class="price-compare-grid">
         <div class="price-compare-col">
-          <div class="price-source">Bitso (XLM/MXN)</div>
+          <div class="price-source">Bitso (XLM/USD → MXN)</div>
           <div class="price-mxn" id="xlm-bitso-mxn">—</div>
           <div class="price-usd-implied" id="xlm-bitso-usd-impl">≈ — USD implícito</div>
           <div class="spread-explain">Precio real de compra/venta en México</div>
@@ -1067,7 +1067,7 @@
     try {
       const [xrpR, xlmR] = await Promise.all([
         fetch('https://summer-surf-0d77.gaboramosguerrero.workers.dev/bitso?book=xrp_mxn'),
-        fetch('https://summer-surf-0d77.gaboramosguerrero.workers.dev/bitso?book=xlm_mxn'),
+        fetch('https://summer-surf-0d77.gaboramosguerrero.workers.dev/bitso?book=xlm_usd'),
       ]);
       const xrpD = await xrpR.json();
       const xlmD = await xlmR.json();
@@ -1108,18 +1108,19 @@
       }
 
       if (xlmD.success) {
-        const bitsoMxn = parseFloat(xlmD.payload.last);
-        const bitsoUsdImpl = bitsoMxn / usdMxn;
+        // xlm_usd: Bitso devuelve precio en USD, convertimos a MXN
+        const bitsoUsd = parseFloat(xlmD.payload.last);
+        const bitsoMxn = bitsoUsd * usdMxn;
         const cgUsd = cgPrices['xlm'] || 0;
         const cgMxn = cgUsd * usdMxn;
 
         setEl('xlm-bitso-mxn', '$' + bitsoMxn.toFixed(4) + ' MXN');
-        setEl('xlm-bitso-usd-impl', '≈ $' + bitsoUsdImpl.toFixed(5) + ' USD implícito');
+        setEl('xlm-bitso-usd-impl', '$' + bitsoUsd.toFixed(5) + ' USD en Bitso');
         setEl('xlm-cg-mxn', cgMxn > 0 ? '$' + cgMxn.toFixed(4) + ' MXN' : '—');
         setEl('xlm-cg-usd', cgUsd > 0 ? '$' + cgUsd.toFixed(4) + ' USD directo' : '—');
 
-        if (cgMxn > 0) {
-          const spread = ((bitsoMxn - cgMxn) / cgMxn) * 100;
+        if (cgUsd > 0) {
+          const spread = ((bitsoUsd - cgUsd) / cgUsd) * 100;
           const absSpread = Math.abs(spread).toFixed(2);
           setEl('xlm-spread-pct', (spread >= 0 ? '+' : '') + spread.toFixed(2) + '%');
           const badge = document.getElementById('xlm-spread-badge');
