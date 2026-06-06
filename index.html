@@ -521,7 +521,7 @@
 <body>
 
 <header>
-  <div class="logo">XRP · XLM <span>MONITOR</span></div>
+  <div class="logo">XRP · XLM · BTC <span>MONITOR</span></div>
   <div class="header-right">
     <label class="auto-refresh" title="Actualizar cada 60s">
       <span>AUTO</span>
@@ -558,6 +558,121 @@
       <span class="macro-sub" id="alt-label">—</span>
     </div>
   </div>
+
+  <!-- ── BTC ── -->
+  <div class="token-section">
+    <div class="token-header-bar">
+      <span class="token-symbol" style="color:#F7931A">BTC</span>
+      <span class="token-name-full">Bitcoin · Indicador macro</span>
+      <span class="token-price-big" id="btc-price-big" style="color:#F7931A">—</span>
+      <span class="token-change" id="btc-change-badge">—</span>
+    </div>
+
+    <div class="pills" id="btc-pills"></div>
+
+    <div class="metric-grid">
+      <div class="metric-cell">
+        <div class="metric-label">Precio USD</div>
+        <div class="metric-value" id="btc-price">—</div>
+        <div class="metric-sub" id="btc-24h">—</div>
+      </div>
+      <div class="metric-cell">
+        <div class="metric-label">Market Cap</div>
+        <div class="metric-value" id="btc-mcap">—</div>
+        <div class="metric-sub">USD</div>
+      </div>
+      <div class="metric-cell">
+        <div class="metric-label">Volumen 24h</div>
+        <div class="metric-value" id="btc-vol">—</div>
+        <div class="metric-sub">USD</div>
+      </div>
+      <div class="metric-cell">
+        <div class="metric-label">Cambio 7d</div>
+        <div class="metric-value" id="btc-7d">—</div>
+        <div class="metric-sub">vs semana pasada</div>
+      </div>
+      <div class="metric-cell">
+        <div class="metric-label">ATH</div>
+        <div class="metric-value" id="btc-ath">—</div>
+        <div class="metric-sub" id="btc-ath-date">—</div>
+      </div>
+      <div class="metric-cell">
+        <div class="metric-label">Dominancia</div>
+        <div class="metric-value" id="btc-dom-local">—</div>
+        <div class="metric-sub">del mercado total</div>
+      </div>
+    </div>
+
+    <!-- Price comparison panel BTC -->
+    <div class="price-compare-panel">
+      <div class="price-compare-header">
+        <div class="live-dot" style="background:#F7931A"></div>
+        Comparativa de precio — Bitso MXN vs CoinGecko USD
+      </div>
+      <div class="price-compare-grid">
+        <div class="price-compare-col">
+          <div class="price-source">Bitso (BTC/MXN)</div>
+          <div class="price-mxn" id="btc-bitso-mxn">—</div>
+          <div class="price-usd-implied" id="btc-bitso-usd-impl">≈ — USD implícito</div>
+          <div class="spread-explain">Precio real en México</div>
+        </div>
+        <div class="price-compare-col">
+          <div class="price-source">CoinGecko (USD × MXN)</div>
+          <div class="price-mxn" id="btc-cg-mxn">—</div>
+          <div class="price-usd-implied" id="btc-cg-usd">— USD directo</div>
+          <div class="spread-explain">Precio internacional convertido</div>
+        </div>
+        <div class="price-compare-col">
+          <div class="price-source">Spread Bitso vs Global</div>
+          <div class="price-mxn" id="btc-spread-pct">—</div>
+          <span class="spread-badge neutral-spread" id="btc-spread-badge">calculando...</span>
+          <div class="spread-explain" id="btc-spread-explain">—</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Señales macro -->
+    <div class="onchain-panel">
+      <div class="onchain-panel-header">
+        <div class="live-dot" style="background:#F7931A"></div>
+        Niveles macro — referencia para XRP y XLM
+      </div>
+      <div class="onchain-grid">
+        <div class="onchain-col">
+          <div class="onchain-row">
+            <span class="onchain-key">🟢 Zona acumulación</span>
+            <span class="onchain-val">< $63,500</span>
+          </div>
+          <div class="onchain-row">
+            <span class="onchain-key">🔴 Caída brusca</span>
+            <span class="onchain-val">< $60,000</span>
+          </div>
+        </div>
+        <div class="onchain-col">
+          <div class="onchain-row">
+            <span class="onchain-key">🟡 Rally moderado</span>
+            <span class="onchain-val">> $66,500</span>
+          </div>
+          <div class="onchain-row">
+            <span class="onchain-key">🚀 Rally fuerte</span>
+            <span class="onchain-val">> $72,000</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="chart-wrap">
+      <div class="chart-legend">
+        <div class="legend-item"><div class="legend-dot" style="background:#F7931A"></div> BTC USD — 7 días</div>
+        <div class="legend-item" style="color:var(--dim); font-size:10px;">CoinGecko API</div>
+      </div>
+      <div class="chart-canvas-wrap">
+        <canvas id="btc-chart" role="img" aria-label="Precio de BTC en los últimos 7 días"></canvas>
+      </div>
+    </div>
+  </div>
+
+  <hr class="divider">
 
   <!-- ── XRP ── -->
   <div class="token-section">
@@ -801,7 +916,7 @@
 </main>
 
 <footer>
-  XRP · XLM MONITOR · DATOS: COINGECKO · XRPSCAN · STELLAR HORIZON · ALTERNATIVE.ME<br>
+  XRP · XLM · BTC MONITOR · DATOS: COINGECKO · BITSO · XRPSCAN · STELLAR HORIZON · ALTERNATIVE.ME<br>
   <span style="color:var(--dim); margin-top:4px; display:block;">No es asesoría financiera. Solo información de mercado.</span>
 </footer>
 
@@ -920,11 +1035,11 @@
   // ── Fetch Prices ──
   async function fetchPrices() {
     try {
-      const r = await fetch('https://api.coingecko.com/api/v3/coins/markets?vs_currency=usd&ids=ripple,stellar&price_change_percentage=7d&sparkline=false');
+      const r = await fetch('https://api.coingecko.com/api/v3/coins/markets?vs_currency=usd&ids=ripple,stellar,bitcoin&price_change_percentage=7d&sparkline=false');
       const coins = await r.json();
 
       coins.forEach(coin => {
-        const id = coin.id === 'ripple' ? 'xrp' : 'xlm';
+        const id = coin.id === 'ripple' ? 'xrp' : coin.id === 'stellar' ? 'xlm' : 'btc';
         const price = coin.current_price;
         const ch24 = coin.price_change_percentage_24h;
         const ch7 = coin.price_change_percentage_7d_in_currency;
@@ -947,10 +1062,11 @@
         const el7 = document.getElementById(id + '-7d');
         if (el7) { el7.textContent = pct(ch7); el7.style.color = ch7 >= 0 ? 'var(--up)' : 'var(--down)'; }
 
-        setEl(id + '-ath', '$' + coin.ath.toFixed(3));
+        setEl(id + '-ath', '$' + coin.ath.toLocaleString('es-MX'));
         const athDate = new Date(coin.ath_date).toLocaleDateString('es-MX', { month: 'short', year: 'numeric' });
         setEl(id + '-ath-date', athDate);
-        setEl(id + '-supply', fmt(coin.circulating_supply));
+        if (id !== 'btc') setEl(id + '-supply', fmt(coin.circulating_supply));
+        if (id === 'btc') setEl('btc-dom-local', document.getElementById('btc-dom')?.textContent || '—');
 
         // Store for spread calculation
         cgPrices[id] = price;
@@ -968,14 +1084,18 @@
   }
 
   // ── Fetch Charts ──
+  let btcChartObj = null;
+
   async function fetchCharts() {
     try {
-      const [xrpR, xlmR] = await Promise.all([
+      const [xrpR, xlmR, btcR] = await Promise.all([
         fetch('https://api.coingecko.com/api/v3/coins/ripple/market_chart?vs_currency=usd&days=7'),
-        fetch('https://api.coingecko.com/api/v3/coins/stellar/market_chart?vs_currency=usd&days=7')
+        fetch('https://api.coingecko.com/api/v3/coins/stellar/market_chart?vs_currency=usd&days=7'),
+        fetch('https://api.coingecko.com/api/v3/coins/bitcoin/market_chart?vs_currency=usd&days=7')
       ]);
       const xrpData = await xrpR.json();
       const xlmData = await xlmR.json();
+      const btcData = await btcR.json();
 
       function sample(arr, n) {
         const step = Math.max(1, Math.floor(arr.length / n));
@@ -984,6 +1104,7 @@
 
       const xrpSampled = sample(xrpData.prices, 42);
       const xlmSampled = sample(xlmData.prices, 42);
+      const btcSampled = sample(btcData.prices, 42);
 
       const labels = xrpSampled.map(p => {
         const d = new Date(p[0]);
@@ -992,6 +1113,7 @@
 
       xrpChartObj = buildChart('xrp-chart', labels, xrpSampled.map(p => parseFloat(p[1].toFixed(5))), '#4f8ef7', xrpChartObj);
       xlmChartObj = buildChart('xlm-chart', labels, xlmSampled.map(p => parseFloat(p[1].toFixed(5))), '#34d399', xlmChartObj);
+      btcChartObj = buildChart('btc-chart', labels, btcSampled.map(p => parseFloat(p[1].toFixed(0))), '#F7931A', btcChartObj);
     } catch (e) {}
   }
 
@@ -1065,12 +1187,14 @@
 
     // Fetch Bitso XRP/MXN
     try {
-      const [xrpR, xlmR] = await Promise.all([
+      const [xrpR, xlmR, btcR] = await Promise.all([
         fetch('https://summer-surf-0d77.gaboramosguerrero.workers.dev/bitso?book=xrp_mxn'),
         fetch('https://summer-surf-0d77.gaboramosguerrero.workers.dev/bitso?book=xlm_usd'),
+        fetch('https://summer-surf-0d77.gaboramosguerrero.workers.dev/bitso?book=btc_mxn'),
       ]);
       const xrpD = await xrpR.json();
       const xlmD = await xlmR.json();
+      const btcD = await btcR.json();
 
       if (xrpD.success) {
         const bitsoMxn = parseFloat(xrpD.payload.last);
@@ -1143,11 +1267,47 @@
         }
       }
     } catch (e) {
-      ['xrp', 'xlm'].forEach(id => {
+      ['xrp', 'xlm', 'btc'].forEach(id => {
         setEl(id + '-bitso-mxn', 'No disponible');
         setEl(id + '-spread-pct', '—');
       });
     }
+
+      // BTC spread
+      if (btcD && btcD.success) {
+        const bitsoMxn = parseFloat(btcD.payload.last);
+        const bitsoUsdImpl = bitsoMxn / usdMxn;
+        const cgUsd = cgPrices['btc'] || 0;
+        const cgMxn = cgUsd * usdMxn;
+
+        setEl('btc-bitso-mxn', '$' + bitsoMxn.toLocaleString('es-MX', {maximumFractionDigits: 0}) + ' MXN');
+        setEl('btc-bitso-usd-impl', '≈ $' + bitsoUsdImpl.toLocaleString('es-MX', {maximumFractionDigits: 0}) + ' USD implícito');
+        setEl('btc-cg-mxn', cgMxn > 0 ? '$' + cgMxn.toLocaleString('es-MX', {maximumFractionDigits: 0}) + ' MXN' : '—');
+        setEl('btc-cg-usd', cgUsd > 0 ? '$' + cgUsd.toLocaleString('es-MX', {maximumFractionDigits: 0}) + ' USD directo' : '—');
+
+        if (cgMxn > 0) {
+          const spread = ((bitsoMxn - cgMxn) / cgMxn) * 100;
+          const absSpread = Math.abs(spread).toFixed(2);
+          setEl('btc-spread-pct', (spread >= 0 ? '+' : '') + spread.toFixed(2) + '%');
+          const badge = document.getElementById('btc-spread-badge');
+          const explain = document.getElementById('btc-spread-explain');
+          if (badge) {
+            if (Math.abs(spread) < 0.5) {
+              badge.className = 'spread-badge neutral-spread';
+              badge.textContent = 'Precio justo';
+              if (explain) explain.textContent = 'Bitso alineado con mercado global';
+            } else if (spread > 0) {
+              badge.className = 'spread-badge premium';
+              badge.textContent = 'Premium +' + absSpread + '%';
+              if (explain) explain.textContent = 'Bitso cobra ' + absSpread + '% más que el precio global';
+            } else {
+              badge.className = 'spread-badge discount';
+              badge.textContent = 'Descuento −' + absSpread + '%';
+              if (explain) explain.textContent = 'Bitso ' + absSpread + '% más barato que el precio global';
+            }
+          }
+        }
+      }
   }
 
   // ── Main fetch ──
