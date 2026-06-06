@@ -1266,14 +1266,8 @@
           }
         }
       }
-    } catch (e) {
-      ['xrp', 'xlm', 'btc'].forEach(id => {
-        setEl(id + '-bitso-mxn', 'No disponible');
-        setEl(id + '-spread-pct', '—');
-      });
-    }
 
-      // BTC spread
+      // ── BTC spread ──
       if (btcD && btcD.success) {
         const bitsoMxn = parseFloat(btcD.payload.last);
         const bitsoUsdImpl = bitsoMxn / usdMxn;
@@ -1308,6 +1302,13 @@
           }
         }
       }
+
+    } catch (e) {
+      ['xrp', 'xlm', 'btc'].forEach(id => {
+        setEl(id + '-bitso-mxn', 'No disponible');
+        setEl(id + '-spread-pct', '—');
+      });
+    }
   }
 
   // ── Main fetch ──
