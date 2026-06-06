@@ -559,6 +559,34 @@
     </div>
   </div>
 
+  <!-- ── Panel Corea ── -->
+  <p class="section-title" style="margin-top:1.5rem">🇰🇷 Indicadores adelantados — Corea</p>
+  <div class="macro-bar" style="margin-bottom:0.5rem">
+    <div class="macro-cell">
+      <span class="macro-label">Kimchi Premium</span>
+      <span class="macro-value" id="kimchi-pct">—</span>
+      <span class="macro-sub" id="kimchi-signal">—</span>
+    </div>
+    <div class="macro-cell">
+      <span class="macro-label">BTC Upbit (KRW)</span>
+      <span class="macro-value" id="kimchi-krw">—</span>
+      <span class="macro-sub" id="kimchi-usd-upbit">—</span>
+    </div>
+    <div class="macro-cell">
+      <span class="macro-label">NASDAQ</span>
+      <span class="macro-value" id="nasdaq-close">—</span>
+      <span class="macro-sub" id="nasdaq-change">—</span>
+    </div>
+    <div class="macro-cell">
+      <span class="macro-label">Correlación BTC/NASDAQ 30d</span>
+      <span class="macro-value" id="corr-val">—</span>
+      <span class="macro-sub" id="corr-status">—</span>
+    </div>
+  </div>
+  <div style="background:var(--bg2);border:1px solid var(--border);border-radius:0 0 8px 8px;padding:0.75rem 1.1rem;margin-bottom:2rem;">
+    <p id="korea-interpretation" style="font-size:12px;color:var(--muted);font-style:italic;margin:0;">Cargando interpretación...</p>
+  </div>
+
   <!-- ── BTC ── -->
   <div class="token-section">
     <div class="token-header-bar">
@@ -1311,6 +1339,92 @@
     }
   }
 
+  // ── Fetch Korea panel ──
+  async function fetchKorea() {
+    try {
+      const r = await fetch('https://summer-surf-0d77.gaboramosguerrero.workers.dev/korea');
+      if (!r.ok) throw new Error('korea ' + r.status);
+      const d = await r.json();
+
+      // Kimchi Premium
+      const kp = d.kimchi?.premium_pct;
+      if (kp !== undefined) {
+        const kpStr = (kp >= 0 ? '+' : '') + kp.toFixed(2) + '%';
+        const kpEl = document.getElementById('kimchi-pct');
+        if (kpEl) {
+          kpEl.textContent = kpStr;
+          kpEl.style.color = kp < -0.5 ? 'var(--up)' : kp > 1 ? 'var(--down)' : 'var(--text)';
+        }
+
+        const signals = {
+          strong_bottom:   '🟢 Suelo histórico — señal alcista fuerte',
+          possible_bottom: '🟡 Posible suelo — acumulación probable',
+          neutral:         '⚪ Neutral — sin señal clara',
+          bullish:         '🔵 Bullish — demanda coreana activa',
+          possible_top:    '🔴 Posible techo — retail coreano eufórico',
+        };
+        setEl('kimchi-signal', signals[d.kimchi?.signal] || '—');
+      }
+
+      // BTC KRW
+      if (d.kimchi?.btc_krw) {
+        setEl('kimchi-krw', '₩' + parseInt(d.kimchi.btc_krw).toLocaleString('es-MX'));
+        setEl('kimchi-usd-upbit', '≈ $' + d.kimchi.btc_usd_upbit?.toLocaleString('es-MX', {maximumFractionDigits: 0}) + ' USD Upbit');
+      }
+
+      // NASDAQ
+      if (d.nasdaq?.close) {
+        setEl('nasdaq-close', d.nasdaq.close.toLocaleString('es-MX', {maximumFractionDigits: 0}));
+        const nc = d.nasdaq.change_1d;
+        const ncEl = document.getElementById('nasdaq-change');
+        if (ncEl && nc !== null) {
+          ncEl.textContent = (nc >= 0 ? '+' : '') + nc.toFixed(2) + '% 1d';
+          ncEl.style.color = nc >= 0 ? 'var(--up)' : 'var(--down)';
+        }
+      }
+
+      // Correlación
+      const corr = d.correlation?.btc_nasdaq_30d;
+      if (corr !== null && corr !== undefined) {
+        setEl('corr-val', corr.toFixed(2));
+        const corrEl = document.getElementById('corr-val');
+        if (corrEl) corrEl.style.color = Math.abs(corr) < 0.3 ? 'var(--up)' : corr > 0.6 ? 'var(--down)' : 'var(--warn)';
+      }
+
+      const corrLabels = {
+        high_positive:     'Alta correlación — BTC sigue a NASDAQ',
+        moderate_positive: 'Correlación moderada — movimientos similares',
+        decoupled:         '🟢 Descorrelacionado — BTC independiente',
+        decoupled_negative:'🟢 Correlación negativa — BTC se mueve opuesto',
+        unknown:           'Calculando...',
+      };
+      setEl('corr-status', corrLabels[d.correlation?.status] || '—');
+
+      // Interpretación contextual
+      const kpv = d.kimchi?.premium_pct || 0;
+      const corrv = d.correlation?.btc_nasdaq_30d || 0;
+      const nasdaqChg = d.nasdaq?.change_1d || 0;
+      let interp = '';
+
+      if (kpv < -1 && Math.abs(corrv) < 0.3) {
+        interp = '⚡ Señal histórica fuerte: Kimchi Premium negativo + BTC descorrelacionado de NASDAQ. Históricamente precede rebotes significativos en BTC, XRP y XLM.';
+      } else if (kpv < -0.5 && nasdaqChg < -2) {
+        interp = '📊 NASDAQ cayendo fuerte con Kimchi en negativo. El capital coreano está en tecnología, no en crypto. Posible zona de acumulación si los fundamentales se mantienen.';
+      } else if (kpv > 2 && corrv > 0.6) {
+        interp = '⚠️ Kimchi Premium positivo alto + BTC correlacionado con NASDAQ. Mercado en euforia — cuidado con nuevas entradas en este nivel.';
+      } else if (Math.abs(corrv) < 0.3) {
+        interp = '🔍 BTC descorrelacionado de NASDAQ — los movimientos actuales son específicos al ecosistema crypto, no macro. Monitorea catalizadores propios de XRP y XLM.';
+      } else {
+        interp = '📈 Mercado correlacionado con tech. Los movimientos de NASDAQ impactarán a BTC, XRP y XLM en las próximas horas.';
+      }
+      setEl('korea-interpretation', interp);
+
+    } catch (e) {
+      setEl('kimchi-pct', 'No disponible');
+      setEl('korea-interpretation', 'Error cargando datos de Corea. Reintentando en el próximo refresh.');
+    }
+  }
+
   // ── Main fetch ──
   async function fetchAll() {
     const btn = document.getElementById('refresh-btn');
@@ -1323,7 +1437,8 @@
       fetchPrices(),
       fetchXRPL(),
       fetchStellar(),
-      fetchCharts()
+      fetchCharts(),
+      fetchKorea()
     ]);
 
     // Bitso después de CoinGecko para tener cgPrices disponible
