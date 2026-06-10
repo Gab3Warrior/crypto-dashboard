@@ -521,7 +521,7 @@
 <body>
 
 <header>
-  <div class="logo">XRP · XLM · BTC <span>MONITOR</span></div>
+  <div class="logo">BTC · XRP · XLM <span>MONITOR</span></div>
   <div class="header-right">
     <label class="auto-refresh" title="Actualizar cada 60s">
       <span>AUTO</span>
@@ -585,6 +585,34 @@
   </div>
   <div style="background:var(--bg2);border:1px solid var(--border);border-radius:0 0 8px 8px;padding:0.75rem 1.1rem;margin-bottom:2rem;">
     <p id="korea-interpretation" style="font-size:12px;color:var(--muted);font-style:italic;margin:0;">Cargando interpretación...</p>
+  </div>
+
+  <!-- ── Panel SOXX ── -->
+  <p class="section-title" style="margin-top:0.5rem">🔬 SOXX — Semiconductores · Indicador de timing para WGMI</p>
+  <div class="macro-bar" style="margin-bottom:0.5rem">
+    <div class="macro-cell">
+      <span class="macro-label">SOXX Precio</span>
+      <span class="macro-value" id="soxx-price">—</span>
+      <span class="macro-sub" id="soxx-change">—</span>
+    </div>
+    <div class="macro-cell">
+      <span class="macro-label">Fibonacci 38.2% (suelo)</span>
+      <span class="macro-value" id="soxx-fib382">—</span>
+      <span class="macro-sub" id="soxx-dist382">—</span>
+    </div>
+    <div class="macro-cell">
+      <span class="macro-label">Fibonacci 61.8% (fuerte)</span>
+      <span class="macro-value" id="soxx-fib618">—</span>
+      <span class="macro-sub" id="soxx-dist618">—</span>
+    </div>
+    <div class="macro-cell">
+      <span class="macro-label">Máximo período</span>
+      <span class="macro-value" id="soxx-high">—</span>
+      <span class="macro-sub" id="soxx-low">mín: —</span>
+    </div>
+  </div>
+  <div style="background:var(--bg2);border:1px solid var(--border);border-radius:0 0 8px 8px;padding:0.75rem 1.1rem;margin-bottom:2rem;">
+    <p id="soxx-signal-text" style="font-size:12px;color:var(--muted);font-style:italic;margin:0;">Cargando señal SOXX...</p>
   </div>
 
   <!-- ── BTC ── -->
@@ -944,7 +972,7 @@
 </main>
 
 <footer>
-  XRP · XLM · BTC MONITOR · DATOS: COINGECKO · BITSO · XRPSCAN · STELLAR HORIZON · ALTERNATIVE.ME<br>
+  BTC · XRP · XLM MONITOR · DATOS: COINGECKO · BITSO · XRPSCAN · STELLAR HORIZON · ALTERNATIVE.ME<br>
   <span style="color:var(--dim); margin-top:4px; display:block;">No es asesoría financiera. Solo información de mercado.</span>
 </footer>
 
@@ -1425,6 +1453,75 @@
     }
   }
 
+  // ── Fetch SOXX — Semiconductores (timing indicator para WGMI) ──
+  async function fetchSOXX() {
+    try {
+      const r = await fetch('https://summer-surf-0d77.gaboramosguerrero.workers.dev/soxx');
+      if (!r.ok) throw new Error('soxx ' + r.status);
+      const d = await r.json();
+
+      const price = d.soxx?.price;
+      const ch    = d.soxx?.change_1d;
+      const fib   = d.fibonacci;
+
+      // Precio y cambio
+      if (price) {
+        setEl('soxx-price', '$' + price.toLocaleString('es-MX', {maximumFractionDigits: 2}));
+        const priceEl = document.getElementById('soxx-price');
+        if (priceEl) priceEl.style.color = ch >= 0 ? 'var(--up)' : 'var(--down)';
+      }
+      if (ch !== null && ch !== undefined) {
+        const chEl = document.getElementById('soxx-change');
+        if (chEl) {
+          chEl.textContent = (ch >= 0 ? '+' : '') + ch.toFixed(2) + '% 1d';
+          chEl.style.color = ch >= 0 ? 'var(--up)' : 'var(--down)';
+        }
+      }
+
+      // Niveles Fibonacci
+      if (fib) {
+        setEl('soxx-fib382', '$' + fib.fib382.toLocaleString('es-MX'));
+        setEl('soxx-fib618', '$' + fib.fib618.toLocaleString('es-MX'));
+        setEl('soxx-high', '$' + fib.high.toLocaleString('es-MX'));
+        setEl('soxx-low', 'mín: $' + fib.low.toLocaleString('es-MX'));
+
+        // Distancia a cada nivel
+        if (price) {
+          const dist382 = ((price - fib.fib382) / price * 100).toFixed(1);
+          const dist618 = ((price - fib.fib618) / price * 100).toFixed(1);
+          const d382El = document.getElementById('soxx-dist382');
+          const d618El = document.getElementById('soxx-dist618');
+          if (d382El) {
+            d382El.textContent = dist382 > 0 ? '+' + dist382 + '% sobre soporte' : Math.abs(dist382) + '% bajo soporte ✅';
+            d382El.style.color = dist382 <= 0 ? 'var(--up)' : dist382 < 5 ? 'var(--warn)' : 'var(--muted)';
+          }
+          if (d618El) {
+            d618El.textContent = dist618 > 0 ? '+' + dist618 + '% sobre soporte' : Math.abs(dist618) + '% bajo soporte ✅';
+            d618El.style.color = dist618 <= 0 ? 'var(--up)' : dist618 < 8 ? 'var(--warn)' : 'var(--muted)';
+          }
+        }
+      }
+
+      // Señal textual
+      const signalEl = document.getElementById('soxx-signal-text');
+      if (signalEl && d.soxx?.signal_text) {
+        signalEl.textContent = d.soxx.signal_text;
+        const signalColors = {
+          buy_zone:       'var(--up)',
+          strong_support: 'var(--up)',
+          approaching:    'var(--warn)',
+          overbought:     'var(--down)',
+          neutral:        'var(--muted)',
+        };
+        signalEl.style.color = signalColors[d.soxx?.signal] || 'var(--muted)';
+      }
+
+    } catch (e) {
+      setEl('soxx-price', 'No disponible');
+      setEl('soxx-signal-text', 'Error cargando SOXX. Verificar en TradingView.');
+    }
+  }
+
   // ── Main fetch ──
   async function fetchAll() {
     const btn = document.getElementById('refresh-btn');
@@ -1438,7 +1535,8 @@
       fetchXRPL(),
       fetchStellar(),
       fetchCharts(),
-      fetchKorea()
+      fetchKorea(),
+      fetchSOXX()
     ]);
 
     // Bitso después de CoinGecko para tener cgPrices disponible
