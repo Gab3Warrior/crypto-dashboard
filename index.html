@@ -142,6 +142,47 @@
     color: var(--muted);
   }
 
+  /* ── Fear & Greed gauge ── */
+  .fng-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+  }
+  .fng-delta {
+    font-family: var(--mono);
+    font-size: 10px;
+  }
+  .fng-track {
+    position: relative;
+    height: 6px;
+    border-radius: 3px;
+    margin: 6px 0 2px;
+    background: linear-gradient(90deg,
+      var(--down) 0%, var(--warn) 50%, var(--up) 100%);
+    opacity: 0.85;
+  }
+  .fng-marker {
+    position: absolute;
+    top: -3px;
+    left: 0%;
+    width: 3px;
+    height: 12px;
+    border-radius: 2px;
+    background: var(--text);
+    box-shadow: 0 0 5px rgba(240,240,245,0.6);
+    transform: translateX(-50%);
+    transition: left 0.8s cubic-bezier(0.22, 1, 0.36, 1);
+  }
+  @keyframes fng-pulse {
+    0%, 100% { box-shadow: inset 0 0 0 1px rgba(248,113,113,0.5); }
+    50%      { box-shadow: inset 0 0 0 1px rgba(248,113,113,0); }
+  }
+  .macro-cell.capitulation { animation: fng-pulse 2.4s ease-in-out infinite; }
+  @media (prefers-reduced-motion: reduce) {
+    .macro-cell.capitulation { animation: none; }
+    .fng-marker { transition: none; }
+  }
+
   /* ── Token section ── */
   .token-section {
     margin-bottom: 3rem;
@@ -537,9 +578,15 @@
   <!-- MACRO -->
   <p class="section-title">Contexto de mercado</p>
   <div class="macro-bar">
-    <div class="macro-cell">
-      <span class="macro-label">Fear & Greed</span>
+    <div class="macro-cell" id="fg-cell">
+      <div class="fng-row">
+        <span class="macro-label">Fear & Greed</span>
+        <span class="fng-delta" id="fg-delta"></span>
+      </div>
       <span class="macro-value" id="fg-val">—</span>
+      <div class="fng-track">
+        <div class="fng-marker" id="fg-marker"></div>
+      </div>
       <span class="macro-sub" id="fg-label">—</span>
     </div>
     <div class="macro-cell">
@@ -1053,17 +1100,33 @@
     });
   }
 
-  // ── Fetch Fear & Greed ──
+  // ── Fetch Fear & Greed (vía Worker summer /fng) ──
   async function fetchFG() {
     try {
-      const r = await fetch('https://api.alternative.me/fng/?limit=1');
-      const d = await r.json();
-      const val = parseInt(d.data[0].value);
-      const label = d.data[0].value_classification;
-      setEl('fg-val', val);
-      setEl('fg-label', label);
+      const r = await fetch('https://summer-surf-0d77.gaboramosguerrero.workers.dev/fng');
+      const d = (await r.json()).fng;
+
+      setEl('fg-val', d.value);
+      setEl('fg-label', d.signal_text || d.classification);
+
       const el = document.getElementById('fg-val');
-      if (el) el.style.color = val < 30 ? 'var(--down)' : val > 60 ? 'var(--up)' : 'var(--warn)';
+      if (el) el.style.color = d.value < 30 ? 'var(--down)' : d.value > 60 ? 'var(--up)' : 'var(--warn)';
+
+      // Marcador en la barra de gradiente
+      const marker = document.getElementById('fg-marker');
+      if (marker) marker.style.left = d.value + '%';
+
+      // Delta vs ayer
+      const dlt = document.getElementById('fg-delta');
+      if (dlt && d.delta !== null && d.delta !== undefined) {
+        dlt.textContent = (d.delta > 0 ? '+' : '') + d.delta + ' vs ayer';
+        dlt.style.color = d.delta >= 0 ? 'var(--up)' : 'var(--down)';
+      }
+
+      // Pulso en zona de capitulación — mismo umbral que la alerta
+      // de Telegram en twilight (CONFIG.fng.extreme_fear = 15)
+      const cell = document.getElementById('fg-cell');
+      if (cell) cell.classList.toggle('capitulation', d.signal === 'extreme_fear');
     } catch (e) {
       setEl('fg-val', '—'); setEl('fg-label', 'no disponible');
     }
