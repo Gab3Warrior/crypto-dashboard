@@ -600,6 +600,11 @@
       <span class="macro-sub">del mercado total</span>
     </div>
     <div class="macro-cell">
+      <span class="macro-label">BTC vs 200W MA</span>
+      <span class="macro-value" id="ma200-dist">—</span>
+      <span class="macro-sub" id="ma200-val">MA: —</span>
+    </div>
+    <div class="macro-cell">
       <span class="macro-label">Market Cap Total</span>
       <span class="macro-value" id="total-mc">—</span>
       <span class="macro-sub" id="mc-change">—</span>
@@ -637,6 +642,34 @@
   </div>
   <div style="background:var(--bg2);border:1px solid var(--border);border-radius:0 0 8px 8px;padding:0.75rem 1.1rem;margin-bottom:2rem;">
     <p id="korea-interpretation" style="font-size:12px;color:var(--muted);font-style:italic;margin:0;">Cargando interpretación...</p>
+  </div>
+
+  <!-- ── Panel Macro USD ── -->
+  <p class="section-title" style="margin-top:0.5rem">💵 Macro USD — DXY · Tasas · Volatilidad</p>
+  <div class="macro-bar" style="margin-bottom:0.5rem">
+    <div class="macro-cell">
+      <span class="macro-label">DXY (Índice Dólar)</span>
+      <span class="macro-value" id="dxy-val">—</span>
+      <span class="macro-sub" id="dxy-change">—</span>
+    </div>
+    <div class="macro-cell">
+      <span class="macro-label">Treasury 10 años</span>
+      <span class="macro-value" id="tnx-val">—</span>
+      <span class="macro-sub">yield — canal tasas → dólar</span>
+    </div>
+    <div class="macro-cell">
+      <span class="macro-label">VIX</span>
+      <span class="macro-value" id="vix-val">—</span>
+      <span class="macro-sub" id="vix-label">—</span>
+    </div>
+    <div class="macro-cell">
+      <span class="macro-label">Correlación BTC/DXY 30d</span>
+      <span class="macro-value" id="corr-dxy-val">—</span>
+      <span class="macro-sub">histórico 5a: −0.4 a −0.8</span>
+    </div>
+  </div>
+  <div style="background:var(--bg2);border:1px solid var(--border);border-radius:0 0 8px 8px;padding:0.75rem 1.1rem;margin-bottom:2rem;">
+    <p id="macro-signal-text" style="font-size:12px;color:var(--muted);font-style:italic;margin:0;">Cargando señal macro...</p>
   </div>
 
   <!-- ── Panel SOXX ── -->
@@ -1685,6 +1718,90 @@
     }
   }
 
+  // ── Fetch BTC vs 200-week MA — ancla histórica de pisos ──
+  async function fetchBTC200W() {
+    try {
+      const r = await fetch('https://summer-surf-0d77.gaboramosguerrero.workers.dev/btc200w');
+      if (!r.ok) throw new Error('btc200w ' + r.status);
+      const d = await r.json();
+
+      if (d.distance_pct !== null && d.distance_pct !== undefined) {
+        const el = document.getElementById('ma200-dist');
+        if (el) {
+          el.textContent = (d.distance_pct > 0 ? '+' : '') + d.distance_pct.toFixed(1) + '%';
+          el.style.color =
+            d.signal === 'below_200wma' ? 'var(--up)'   :  // debajo = oportunidad
+            d.signal === 'approaching'  ? 'var(--warn)' :
+            d.signal === 'extended'     ? 'var(--down)' :
+            'var(--text)';
+        }
+      }
+      if (d.ma_200w) {
+        setEl('ma200-val', 'MA: $' + d.ma_200w.toLocaleString('es-MX'));
+      }
+    } catch (e) {
+      setEl('ma200-val', 'no disponible');
+    }
+  }
+
+  // ── Fetch Macro USD — DXY · 10Y · VIX · correlación BTC-DXY ──
+  async function fetchMacroUSD() {
+    try {
+      const r = await fetch('https://summer-surf-0d77.gaboramosguerrero.workers.dev/macro');
+      if (!r.ok) throw new Error('macro ' + r.status);
+      const d = await r.json();
+
+      // DXY — el que el mercado premia: inversa documentada con BTC
+      if (d.dxy?.value) {
+        setEl('dxy-val', d.dxy.value.toFixed(2));
+        const el = document.getElementById('dxy-val');
+        if (el) {
+          el.style.color =
+            d.dxy.signal === 'tightening' ? 'var(--down)' :
+            d.dxy.signal === 'easing'     ? 'var(--up)'   :
+            'var(--text)';
+        }
+        const chEl = document.getElementById('dxy-change');
+        if (chEl && d.dxy.change_30d !== null) {
+          chEl.textContent = (d.dxy.change_30d > 0 ? '+' : '') + d.dxy.change_30d.toFixed(2) + '% en 30d';
+          // DXY subiendo = malo para BTC → rojo
+          chEl.style.color = d.dxy.change_30d > 0 ? 'var(--down)' : 'var(--up)';
+        }
+      }
+
+      // 10Y yield
+      if (d.yield_10y) setEl('tnx-val', d.yield_10y.toFixed(2) + '%');
+
+      // VIX — bandera de régimen
+      if (d.vix?.value) {
+        setEl('vix-val', d.vix.value.toFixed(1));
+        const vEl = document.getElementById('vix-val');
+        const vLbl = document.getElementById('vix-label');
+        const map = {
+          panic:    ['var(--down)', '🔴 pánico — risk-off'],
+          elevated: ['var(--warn)', '🟡 elevado — tensión'],
+          calm:     ['var(--up)',   'calma'],
+        };
+        const [color, label] = map[d.vix.signal] || ['var(--text)', '—'];
+        if (vEl) vEl.style.color = color;
+        if (vLbl) vLbl.textContent = label;
+      }
+
+      // Correlación BTC-DXY 30d
+      if (d.correlation?.btc_dxy_30d !== null && d.correlation?.btc_dxy_30d !== undefined) {
+        setEl('corr-dxy-val', d.correlation.btc_dxy_30d.toFixed(2));
+        const cEl = document.getElementById('corr-dxy-val');
+        // Negativa = régimen histórico normal (verde); positiva = anomalía (warn)
+        if (cEl) cEl.style.color = d.correlation.btc_dxy_30d < -0.2 ? 'var(--up)' : 'var(--warn)';
+      }
+
+      // Señal del Worker — una sola fuente de verdad
+      if (d.dxy?.signal_text) setEl('macro-signal-text', d.dxy.signal_text);
+    } catch (e) {
+      setEl('macro-signal-text', 'Macro USD no disponible: ' + e.message);
+    }
+  }
+
   async function fetchAll() {
     const btn = document.getElementById('refresh-btn');
     if (btn) btn.classList.add('spinning');
@@ -1699,7 +1816,9 @@
       fetchCharts(),
       fetchKorea(),
       fetchSOXX(),
-      fetchWGMI()
+      fetchWGMI(),
+      fetchBTC200W(),
+      fetchMacroUSD()
     ]);
 
     // Bitso después de CoinGecko para tener cgPrices disponible
