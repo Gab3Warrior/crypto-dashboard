@@ -1172,12 +1172,13 @@
 
   function sample(arr, n) {
     if (arr.length <= n) return arr;
-    const step = Math.max(1, Math.floor(arr.length / n));
-    const sampled = arr.filter((_, i) => i % step === 0);
-    // Siempre incluir el último punto para no perder datos recientes
-    const last = arr[arr.length - 1];
-    if (sampled[sampled.length - 1] !== last) sampled.push(last);
-    return sampled.slice(-n); // Tomar los últimos N para garantizar datos más recientes
+    const result = [];
+    // N puntos equidistantes garantizando primer y último punto
+    const step = (arr.length - 1) / (n - 1);
+    for (let i = 0; i < n; i++) {
+      result.push(arr[Math.round(i * step)]);
+    }
+    return result;
   }
 
       const xrpSampled = sample(xrpData.prices, 42);
