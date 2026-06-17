@@ -349,7 +349,7 @@
   .chart-canvas-wrap {
     position: relative;
     width: 100%;
-    height: 220px;
+    height: 280px;
   }
 
   /* ── Divider ── */
@@ -1159,40 +1159,174 @@
   // ── Fetch Charts ──
   let btcChartObj = null;
 
+  // ── Calcular EMA ──
+  function calcEMA(data, period) {
+    const k = 2 / (period + 1);
+    const ema = [];
+    let prev = null;
+    for (let i = 0; i < data.length; i++) {
+      if (prev === null) {
+        if (i < period - 1) { ema.push(null); continue; }
+        const slice = data.slice(0, period);
+        prev = slice.reduce((a, b) => a + b, 0) / period;
+        ema.push(parseFloat(prev.toFixed(6)));
+      } else {
+        prev = data[i] * (2 / (period + 1)) + prev * (1 - 2 / (period + 1));
+        ema.push(parseFloat(prev.toFixed(6)));
+      }
+    }
+    return ema;
+  }
+
+  // ── Gráfica con EMAs ──
+  function buildChartWithEMAs(canvasId, labels, prices, color, existingChart) {
+    if (existingChart) existingChart.destroy();
+    const ctx = document.getElementById(canvasId);
+    if (!ctx) return null;
+    const maxVal = Math.max(...prices.filter(v => v !== null && v !== undefined));
+    const isLarge = maxVal >= 1000;
+    const ema20  = calcEMA(prices, 20);
+    const ema55  = calcEMA(prices, 55);
+    const ema200 = calcEMA(prices, 200);
+    return new Chart(ctx, {
+      type: 'line',
+      data: {
+        labels,
+        datasets: [
+          {
+            label: 'Precio',
+            data: prices,
+            borderColor: color,
+            backgroundColor: color + '12',
+            fill: true,
+            tension: 0.3,
+            pointRadius: 0,
+            borderWidth: 2,
+            order: 1,
+          },
+          {
+            label: 'EMA 20',
+            data: ema20,
+            borderColor: '#fbbf24',
+            backgroundColor: 'transparent',
+            fill: false,
+            tension: 0.3,
+            pointRadius: 0,
+            borderWidth: 1.5,
+            borderDash: [],
+            order: 2,
+          },
+          {
+            label: 'EMA 55',
+            data: ema55,
+            borderColor: '#a78bfa',
+            backgroundColor: 'transparent',
+            fill: false,
+            tension: 0.3,
+            pointRadius: 0,
+            borderWidth: 1.5,
+            borderDash: [4, 3],
+            order: 3,
+          },
+          {
+            label: 'EMA 200',
+            data: ema200,
+            borderColor: '#f87171',
+            backgroundColor: 'transparent',
+            fill: false,
+            tension: 0.3,
+            pointRadius: 0,
+            borderWidth: 1.5,
+            borderDash: [8, 4],
+            order: 4,
+          },
+        ]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        layout: { padding: { left: isLarge ? 8 : 0 } },
+        plugins: {
+          legend: {
+            display: true,
+            position: 'top',
+            labels: {
+              color: '#7a7a96',
+              font: { family: 'Space Mono', size: 9 },
+              boxWidth: 12,
+              padding: 8,
+              filter: item => item.text !== 'Precio' || true,
+            }
+          },
+          tooltip: {
+            callbacks: {
+              label: ctx => {
+                const label = ctx.dataset.label || '';
+                const val = isLarge
+                  ? '$' + ctx.parsed.y.toLocaleString('es-MX', {maximumFractionDigits: 0})
+                  : '$' + ctx.parsed.y.toFixed(4);
+                return label + ': ' + val;
+              }
+            }
+          }
+        },
+        scales: {
+          x: {
+            ticks: { color: '#7a7a96', font: { family: 'Space Mono', size: 9 }, maxTicksLimit: 6 },
+            grid: { color: 'rgba(255,255,255,0.04)' }
+          },
+          y: {
+            ticks: {
+              color: '#7a7a96',
+              font: { family: 'Space Mono', size: 9 },
+              maxTicksLimit: 5,
+              callback: v => isLarge
+                ? '$' + (v >= 1000 ? (v/1000).toFixed(0) + 'K' : v)
+                : '$' + v.toFixed(3)
+            },
+            grid: { color: 'rgba(255,255,255,0.04)' }
+          }
+        }
+      }
+    });
+  }
+
   async function fetchCharts() {
     try {
       const [xrpR, xlmR, btcR] = await Promise.all([
-        fetch('https://api.coingecko.com/api/v3/coins/ripple/market_chart?vs_currency=usd&days=7'),
-        fetch('https://api.coingecko.com/api/v3/coins/stellar/market_chart?vs_currency=usd&days=7'),
-        fetch('https://api.coingecko.com/api/v3/coins/bitcoin/market_chart?vs_currency=usd&days=7')
+        fetch('https://api.coingecko.com/api/v3/coins/ripple/market_chart?vs_currency=usd&days=90&interval=daily'),
+        fetch('https://api.coingecko.com/api/v3/coins/stellar/market_chart?vs_currency=usd&days=90&interval=daily'),
+        fetch('https://api.coingecko.com/api/v3/coins/bitcoin/market_chart?vs_currency=usd&days=90&interval=daily')
       ]);
       const xrpData = await xrpR.json();
       const xlmData = await xlmR.json();
       const btcData = await btcR.json();
 
-  function sample(arr, n) {
-    if (arr.length <= n) return arr;
-    const result = [];
-    // N puntos equidistantes garantizando primer y último punto
-    const step = (arr.length - 1) / (n - 1);
-    for (let i = 0; i < n; i++) {
-      result.push(arr[Math.round(i * step)]);
-    }
-    return result;
-  }
+      function sampleByDay(prices) {
+        const byDay = {};
+        for (const p of prices) {
+          const day = new Date(p[0]).toLocaleDateString('es-MX', { month: 'short', day: 'numeric' });
+          byDay[day] = p;
+        }
+        return Object.values(byDay);
+      }
 
-      const xrpSampled = sample(xrpData.prices, 42);
-      const xlmSampled = sample(xlmData.prices, 42);
-      const btcSampled = sample(btcData.prices, 42);
+      const xrpSampled = sampleByDay(xrpData.prices);
+      const xlmSampled = sampleByDay(xlmData.prices);
+      const btcSampled = sampleByDay(btcData.prices);
 
       const labels = xrpSampled.map(p => {
         const d = new Date(p[0]);
         return d.toLocaleDateString('es-MX', { month: 'short', day: 'numeric' });
       });
 
-      xrpChartObj = buildChart('xrp-chart', labels, xrpSampled.map(p => parseFloat(p[1].toFixed(5))), '#4f8ef7', xrpChartObj);
-      xlmChartObj = buildChart('xlm-chart', labels, xlmSampled.map(p => parseFloat(p[1].toFixed(5))), '#34d399', xlmChartObj);
-      btcChartObj = buildChart('btc-chart', labels, btcSampled.map(p => parseFloat(p[1].toFixed(0))), '#F7931A', btcChartObj);
+      const xrpPrices = xrpSampled.map(p => p[1]);
+      const xlmPrices = xlmSampled.map(p => p[1]);
+      const btcPrices = btcSampled.map(p => p[1]);
+
+      xrpChartObj = buildChartWithEMAs('xrp-chart', labels, xrpPrices, '#4f8ef7', xrpChartObj);
+      xlmChartObj = buildChartWithEMAs('xlm-chart', labels, xlmPrices, '#34d399', xlmChartObj);
+      btcChartObj = buildChartWithEMAs('btc-chart', labels, btcPrices, '#F7931A', btcChartObj);
     } catch (e) {}
   }
 
