@@ -1163,17 +1163,11 @@
   function calcEMA(data, period) {
     const k = 2 / (period + 1);
     const ema = [];
-    let prev = null;
-    for (let i = 0; i < data.length; i++) {
-      if (prev === null) {
-        if (i < period - 1) { ema.push(null); continue; }
-        const slice = data.slice(0, period);
-        prev = slice.reduce((a, b) => a + b, 0) / period;
-        ema.push(parseFloat(prev.toFixed(6)));
-      } else {
-        prev = data[i] * (2 / (period + 1)) + prev * (1 - 2 / (period + 1));
-        ema.push(parseFloat(prev.toFixed(6)));
-      }
+    let prev = data[0];
+    ema.push(parseFloat(prev.toFixed(6)));
+    for (let i = 1; i < data.length; i++) {
+      prev = data[i] * k + prev * (1 - k);
+      ema.push(parseFloat(prev.toFixed(6)));
     }
     return ema;
   }
@@ -1230,7 +1224,7 @@
           },
           {
             label: 'EMA 200',
-            data: prices.length >= 200 ? ema200 : ema200.map((v, i) => i < prices.length - 30 ? null : v),
+            data: ema200,
             borderColor: '#f87171',
             backgroundColor: 'transparent',
             fill: false,
