@@ -719,11 +719,11 @@
 
     <div class="chart-wrap">
       <div class="chart-legend">
-        <div class="legend-item"><div class="legend-dot" style="background:#F7931A"></div> BTC USD — 7 días</div>
+        <div class="legend-item"><div class="legend-dot" style="background:#F7931A"></div> BTC USD — 90 días</div>
         <div class="legend-item" style="color:var(--dim); font-size:10px;">CoinGecko API</div>
       </div>
       <div class="chart-canvas-wrap">
-        <canvas id="btc-chart" role="img" aria-label="Precio de BTC en los últimos 7 días"></canvas>
+        <canvas id="btc-chart" role="img" aria-label="Precio de BTC en los últimos 90 días"></canvas>
       </div>
     </div>
   </div>
@@ -838,11 +838,11 @@
 
     <div class="chart-wrap">
       <div class="chart-legend">
-        <div class="legend-item"><div class="legend-dot" style="background:var(--xrp)"></div> XRP USD — 7 días</div>
+        <div class="legend-item"><div class="legend-dot" style="background:var(--xrp)"></div> XRP USD — 90 días</div>
         <div class="legend-item" style="color:var(--dim); font-size:10px;">CoinGecko API</div>
       </div>
       <div class="chart-canvas-wrap">
-        <canvas id="xrp-chart" role="img" aria-label="Precio de XRP en los últimos 7 días"></canvas>
+        <canvas id="xrp-chart" role="img" aria-label="Precio de XRP en los últimos 90 días"></canvas>
       </div>
     </div>
   </div>
@@ -960,11 +960,11 @@
 
     <div class="chart-wrap">
       <div class="chart-legend">
-        <div class="legend-item"><div class="legend-dot" style="background:var(--xlm)"></div> XLM USD — 7 días</div>
+        <div class="legend-item"><div class="legend-dot" style="background:var(--xlm)"></div> XLM USD — 90 días</div>
         <div class="legend-item" style="color:var(--dim); font-size:10px;">CoinGecko API</div>
       </div>
       <div class="chart-canvas-wrap">
-        <canvas id="xlm-chart" role="img" aria-label="Precio de XLM en los últimos 7 días"></canvas>
+        <canvas id="xlm-chart" role="img" aria-label="Precio de XLM en los últimos 90 días"></canvas>
       </div>
     </div>
   </div>
@@ -1230,7 +1230,7 @@
           },
           {
             label: 'EMA 200',
-            data: ema200,
+            data: prices.length >= 200 ? ema200 : ema200.map((v, i) => i < prices.length - 30 ? null : v),
             borderColor: '#f87171',
             backgroundColor: 'transparent',
             fill: false,
@@ -1239,6 +1239,7 @@
             borderWidth: 1.5,
             borderDash: [8, 4],
             order: 4,
+            spanGaps: false,
           },
         ]
       },
