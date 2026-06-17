@@ -142,52 +142,6 @@
     color: var(--muted);
   }
 
-  /* ── Fear & Greed gauge ── */
-  .fng-row {
-    display: flex;
-    justify-content: space-between;
-    align-items: baseline;
-  }
-  .fng-delta {
-    font-family: var(--mono);
-    font-size: 10px;
-  }
-  .fng-track {
-    position: relative;
-    height: 6px;
-    border-radius: 3px;
-    margin: 6px 0 2px;
-    background: linear-gradient(90deg,
-      var(--down) 0%, var(--warn) 50%, var(--up) 100%);
-    opacity: 0.85;
-  }
-  /* Invertida: para ratios donde alto = caro/riesgo (WGMI/BTC) */
-  .fng-track.inverted {
-    background: linear-gradient(90deg,
-      var(--up) 0%, var(--warn) 50%, var(--down) 100%);
-  }
-  .fng-marker {
-    position: absolute;
-    top: -3px;
-    left: 0%;
-    width: 3px;
-    height: 12px;
-    border-radius: 2px;
-    background: var(--text);
-    box-shadow: 0 0 5px rgba(240,240,245,0.6);
-    transform: translateX(-50%);
-    transition: left 0.8s cubic-bezier(0.22, 1, 0.36, 1);
-  }
-  @keyframes fng-pulse {
-    0%, 100% { box-shadow: inset 0 0 0 1px rgba(248,113,113,0.5); }
-    50%      { box-shadow: inset 0 0 0 1px rgba(248,113,113,0); }
-  }
-  .macro-cell.capitulation { animation: fng-pulse 2.4s ease-in-out infinite; }
-  @media (prefers-reduced-motion: reduce) {
-    .macro-cell.capitulation { animation: none; }
-    .fng-marker { transition: none; }
-  }
-
   /* ── Token section ── */
   .token-section {
     margin-bottom: 3rem;
@@ -583,26 +537,15 @@
   <!-- MACRO -->
   <p class="section-title">Contexto de mercado</p>
   <div class="macro-bar">
-    <div class="macro-cell" id="fg-cell">
-      <div class="fng-row">
-        <span class="macro-label">Fear & Greed</span>
-        <span class="fng-delta" id="fg-delta"></span>
-      </div>
+    <div class="macro-cell">
+      <span class="macro-label">Fear & Greed</span>
       <span class="macro-value" id="fg-val">—</span>
-      <div class="fng-track">
-        <div class="fng-marker" id="fg-marker"></div>
-      </div>
       <span class="macro-sub" id="fg-label">—</span>
     </div>
     <div class="macro-cell">
       <span class="macro-label">BTC Dominance</span>
       <span class="macro-value" id="btc-dom">—</span>
       <span class="macro-sub">del mercado total</span>
-    </div>
-    <div class="macro-cell">
-      <span class="macro-label">BTC vs 200W MA</span>
-      <span class="macro-value" id="ma200-dist">—</span>
-      <span class="macro-sub" id="ma200-val">MA: —</span>
     </div>
     <div class="macro-cell">
       <span class="macro-label">Market Cap Total</span>
@@ -644,34 +587,6 @@
     <p id="korea-interpretation" style="font-size:12px;color:var(--muted);font-style:italic;margin:0;">Cargando interpretación...</p>
   </div>
 
-  <!-- ── Panel Macro USD ── -->
-  <p class="section-title" style="margin-top:0.5rem">💵 Macro USD — DXY · Tasas · Volatilidad</p>
-  <div class="macro-bar" style="margin-bottom:0.5rem">
-    <div class="macro-cell">
-      <span class="macro-label">DXY (Índice Dólar)</span>
-      <span class="macro-value" id="dxy-val">—</span>
-      <span class="macro-sub" id="dxy-change">—</span>
-    </div>
-    <div class="macro-cell">
-      <span class="macro-label">Treasury 10 años</span>
-      <span class="macro-value" id="tnx-val">—</span>
-      <span class="macro-sub">yield — canal tasas → dólar</span>
-    </div>
-    <div class="macro-cell">
-      <span class="macro-label">VIX</span>
-      <span class="macro-value" id="vix-val">—</span>
-      <span class="macro-sub" id="vix-label">—</span>
-    </div>
-    <div class="macro-cell">
-      <span class="macro-label">Correlación BTC/DXY 30d</span>
-      <span class="macro-value" id="corr-dxy-val">—</span>
-      <span class="macro-sub">histórico 5a: −0.4 a −0.8</span>
-    </div>
-  </div>
-  <div style="background:var(--bg2);border:1px solid var(--border);border-radius:0 0 8px 8px;padding:0.75rem 1.1rem;margin-bottom:2rem;">
-    <p id="macro-signal-text" style="font-size:12px;color:var(--muted);font-style:italic;margin:0;">Cargando señal macro...</p>
-  </div>
-
   <!-- ── Panel SOXX ── -->
   <p class="section-title" style="margin-top:0.5rem">🔬 SOXX — Semiconductores · Indicador de timing para WGMI</p>
   <div class="macro-bar" style="margin-bottom:0.5rem">
@@ -698,37 +613,6 @@
   </div>
   <div style="background:var(--bg2);border:1px solid var(--border);border-radius:0 0 8px 8px;padding:0.75rem 1.1rem;margin-bottom:2rem;">
     <p id="soxx-signal-text" style="font-size:12px;color:var(--muted);font-style:italic;margin:0;">Cargando señal SOXX...</p>
-  </div>
-
-  <!-- ── Panel WGMI ── -->
-  <p class="section-title" style="margin-top:0.5rem">⛏️ WGMI — Mineros BTC · Ratio de divergencia vs Bitcoin</p>
-  <div class="macro-bar" style="margin-bottom:0.5rem">
-    <div class="macro-cell">
-      <span class="macro-label">WGMI Precio</span>
-      <span class="macro-value" id="wgmi-price">—</span>
-      <span class="macro-sub" id="wgmi-change">—</span>
-    </div>
-    <div class="macro-cell">
-      <span class="macro-label">Ratio WGMI/BTC ×1000</span>
-      <span class="macro-value" id="wgmi-ratio">—</span>
-      <div class="fng-track inverted">
-        <div class="fng-marker" id="wgmi-marker"></div>
-      </div>
-      <span class="macro-sub" id="wgmi-pct">—</span>
-    </div>
-    <div class="macro-cell">
-      <span class="macro-label">Promedio 90 días</span>
-      <span class="macro-value" id="wgmi-avg">—</span>
-      <span class="macro-sub" id="wgmi-range">rango: —</span>
-    </div>
-    <div class="macro-cell">
-      <span class="macro-label">BTC subyacente</span>
-      <span class="macro-value" id="wgmi-btc">—</span>
-      <span class="macro-sub">USD (Kraken)</span>
-    </div>
-  </div>
-  <div style="background:var(--bg2);border:1px solid var(--border);border-radius:0 0 8px 8px;padding:0.75rem 1.1rem;margin-bottom:2rem;">
-    <p id="wgmi-signal-text" style="font-size:12px;color:var(--muted);font-style:italic;margin:0;">Cargando señal WGMI...</p>
   </div>
 
   <!-- ── BTC ── -->
@@ -1133,6 +1017,11 @@
     if (existingChart) existingChart.destroy();
     const ctx = document.getElementById(canvasId);
     if (!ctx) return null;
+
+    // Detectar si los valores son grandes (BTC) para abreviar
+    const maxVal = Math.max(...data.filter(v => v !== null));
+    const isLarge = maxVal >= 1000;
+
     return new Chart(ctx, {
       type: 'line',
       data: {
@@ -1150,18 +1039,30 @@
       options: {
         responsive: true,
         maintainAspectRatio: false,
+        layout: {
+          padding: { left: isLarge ? 8 : 0 }
+        },
         plugins: { legend: { display: false }, tooltip: {
           callbacks: {
-            label: ctx => ' $' + ctx.parsed.y.toFixed(4)
+            label: ctx => isLarge
+              ? ' $' + ctx.parsed.y.toLocaleString('es-MX', {maximumFractionDigits: 0})
+              : ' $' + ctx.parsed.y.toFixed(4)
           }
         }},
         scales: {
           x: {
-            ticks: { color: '#7a7a96', font: { family: 'Space Mono', size: 10 }, maxTicksLimit: 7 },
+            ticks: { color: '#7a7a96', font: { family: 'Space Mono', size: 9 }, maxTicksLimit: 5 },
             grid: { color: 'rgba(255,255,255,0.04)' }
           },
           y: {
-            ticks: { color: '#7a7a96', font: { family: 'Space Mono', size: 10 }, callback: v => '$' + v.toFixed(3) },
+            ticks: {
+              color: '#7a7a96',
+              font: { family: 'Space Mono', size: 9 },
+              maxTicksLimit: 5,
+              callback: v => isLarge
+                ? '$' + (v >= 1000 ? (v/1000).toFixed(0) + 'K' : v)
+                : '$' + v.toFixed(3)
+            },
             grid: { color: 'rgba(255,255,255,0.04)' }
           }
         }
@@ -1169,33 +1070,17 @@
     });
   }
 
-  // ── Fetch Fear & Greed (vía Worker summer /fng) ──
+  // ── Fetch Fear & Greed ──
   async function fetchFG() {
     try {
-      const r = await fetch('https://summer-surf-0d77.gaboramosguerrero.workers.dev/fng');
-      const d = (await r.json()).fng;
-
-      setEl('fg-val', d.value);
-      setEl('fg-label', d.signal_text || d.classification);
-
+      const r = await fetch('https://api.alternative.me/fng/?limit=1');
+      const d = await r.json();
+      const val = parseInt(d.data[0].value);
+      const label = d.data[0].value_classification;
+      setEl('fg-val', val);
+      setEl('fg-label', label);
       const el = document.getElementById('fg-val');
-      if (el) el.style.color = d.value < 30 ? 'var(--down)' : d.value > 60 ? 'var(--up)' : 'var(--warn)';
-
-      // Marcador en la barra de gradiente
-      const marker = document.getElementById('fg-marker');
-      if (marker) marker.style.left = d.value + '%';
-
-      // Delta vs ayer
-      const dlt = document.getElementById('fg-delta');
-      if (dlt && d.delta !== null && d.delta !== undefined) {
-        dlt.textContent = (d.delta > 0 ? '+' : '') + d.delta + ' vs ayer';
-        dlt.style.color = d.delta >= 0 ? 'var(--up)' : 'var(--down)';
-      }
-
-      // Pulso en zona de capitulación — mismo umbral que la alerta
-      // de Telegram en twilight (CONFIG.fng.extreme_fear = 15)
-      const cell = document.getElementById('fg-cell');
-      if (cell) cell.classList.toggle('capitulation', d.signal === 'extreme_fear');
+      if (el) el.style.color = val < 30 ? 'var(--down)' : val > 60 ? 'var(--up)' : 'var(--warn)';
     } catch (e) {
       setEl('fg-val', '—'); setEl('fg-label', 'no disponible');
     }
@@ -1285,10 +1170,15 @@
       const xlmData = await xlmR.json();
       const btcData = await btcR.json();
 
-      function sample(arr, n) {
-        const step = Math.max(1, Math.floor(arr.length / n));
-        return arr.filter((_, i) => i % step === 0).slice(0, n);
-      }
+  function sample(arr, n) {
+    if (arr.length <= n) return arr;
+    const step = Math.max(1, Math.floor(arr.length / n));
+    const sampled = arr.filter((_, i) => i % step === 0);
+    // Siempre incluir el último punto para no perder datos recientes
+    const last = arr[arr.length - 1];
+    if (sampled[sampled.length - 1] !== last) sampled.push(last);
+    return sampled.slice(-n); // Tomar los últimos N para garantizar datos más recientes
+  }
 
       const xrpSampled = sample(xrpData.prices, 42);
       const xlmSampled = sample(xlmData.prices, 42);
@@ -1655,153 +1545,6 @@
   }
 
   // ── Main fetch ──
-  // ── Fetch WGMI — Mineros BTC (ratio de divergencia vs Bitcoin) ──
-  async function fetchWGMI() {
-    try {
-      const r = await fetch('https://summer-surf-0d77.gaboramosguerrero.workers.dev/wgmi');
-      if (!r.ok) throw new Error('wgmi ' + r.status);
-      const d = await r.json();
-
-      // Precio y cambio diario
-      const price = d.wgmi?.price;
-      const ch    = d.wgmi?.change_1d;
-      if (price) {
-        setEl('wgmi-price', '$' + price.toLocaleString('es-MX', {maximumFractionDigits: 2}));
-        const chEl = document.getElementById('wgmi-change');
-        if (chEl && ch !== null && ch !== undefined) {
-          chEl.textContent = (ch > 0 ? '+' : '') + ch.toFixed(2) + '% hoy';
-          chEl.style.color = ch >= 0 ? 'var(--up)' : 'var(--down)';
-        }
-      }
-
-      // Ratio y contexto 90d
-      const rt = d.ratio || {};
-      if (rt.current) {
-        setEl('wgmi-ratio', rt.current.toFixed(3));
-        const rtEl = document.getElementById('wgmi-ratio');
-        if (rtEl) {
-          rtEl.style.color =
-            rt.signal === 'extreme_divergence' ? 'var(--down)' :
-            rt.signal === 'elevated'           ? 'var(--warn)' :
-            (rt.signal === 'discount' || rt.signal === 'deep_discount') ? 'var(--up)' :
-            'var(--text)';
-        }
-
-        // Marcador: posición del ratio dentro del rango de 90 días
-        const marker = document.getElementById('wgmi-marker');
-        if (marker && rt.high_90d && rt.low_90d && rt.high_90d > rt.low_90d) {
-          const pos = ((rt.current - rt.low_90d) / (rt.high_90d - rt.low_90d)) * 100;
-          marker.style.left = Math.max(0, Math.min(100, pos)) + '%';
-        }
-      }
-      if (rt.pct_vs_avg !== null && rt.pct_vs_avg !== undefined) {
-        const pctEl = document.getElementById('wgmi-pct');
-        if (pctEl) {
-          pctEl.textContent = (rt.pct_vs_avg > 0 ? '+' : '') + rt.pct_vs_avg.toFixed(1) + '% vs promedio 90d';
-          pctEl.style.color = rt.pct_vs_avg >= 0 ? 'var(--warn)' : 'var(--up)';
-        }
-      }
-      if (rt.avg_90d)  setEl('wgmi-avg', rt.avg_90d.toFixed(3));
-      if (rt.low_90d && rt.high_90d) {
-        setEl('wgmi-range', 'rango: ' + rt.low_90d.toFixed(3) + ' – ' + rt.high_90d.toFixed(3));
-      }
-
-      // BTC subyacente
-      if (d.btc_usd) {
-        setEl('wgmi-btc', '$' + d.btc_usd.toLocaleString('es-MX', {maximumFractionDigits: 0}));
-      }
-
-      // Señal calculada en el Worker (una sola fuente de verdad)
-      if (rt.signal_text) setEl('wgmi-signal-text', rt.signal_text);
-    } catch (e) {
-      setEl('wgmi-signal-text', 'WGMI no disponible: ' + e.message);
-    }
-  }
-
-  // ── Fetch BTC vs 200-week MA — ancla histórica de pisos ──
-  async function fetchBTC200W() {
-    try {
-      const r = await fetch('https://summer-surf-0d77.gaboramosguerrero.workers.dev/btc200w');
-      if (!r.ok) throw new Error('btc200w ' + r.status);
-      const d = await r.json();
-
-      if (d.distance_pct !== null && d.distance_pct !== undefined) {
-        const el = document.getElementById('ma200-dist');
-        if (el) {
-          el.textContent = (d.distance_pct > 0 ? '+' : '') + d.distance_pct.toFixed(1) + '%';
-          el.style.color =
-            d.signal === 'below_200wma' ? 'var(--up)'   :  // debajo = oportunidad
-            d.signal === 'approaching'  ? 'var(--warn)' :
-            d.signal === 'extended'     ? 'var(--down)' :
-            'var(--text)';
-        }
-      }
-      if (d.ma_200w) {
-        setEl('ma200-val', 'MA: $' + d.ma_200w.toLocaleString('es-MX'));
-      }
-    } catch (e) {
-      setEl('ma200-val', 'no disponible');
-    }
-  }
-
-  // ── Fetch Macro USD — DXY · 10Y · VIX · correlación BTC-DXY ──
-  async function fetchMacroUSD() {
-    try {
-      const r = await fetch('https://summer-surf-0d77.gaboramosguerrero.workers.dev/macro');
-      if (!r.ok) throw new Error('macro ' + r.status);
-      const d = await r.json();
-
-      // DXY — el que el mercado premia: inversa documentada con BTC
-      if (d.dxy?.value) {
-        setEl('dxy-val', d.dxy.value.toFixed(2));
-        const el = document.getElementById('dxy-val');
-        if (el) {
-          el.style.color =
-            d.dxy.signal === 'tightening' ? 'var(--down)' :
-            d.dxy.signal === 'easing'     ? 'var(--up)'   :
-            'var(--text)';
-        }
-        const chEl = document.getElementById('dxy-change');
-        if (chEl && d.dxy.change_30d !== null) {
-          chEl.textContent = (d.dxy.change_30d > 0 ? '+' : '') + d.dxy.change_30d.toFixed(2) + '% en 30d';
-          // DXY subiendo = malo para BTC → rojo
-          chEl.style.color = d.dxy.change_30d > 0 ? 'var(--down)' : 'var(--up)';
-        }
-      }
-
-      // 10Y yield
-      if (d.yield_10y) setEl('tnx-val', d.yield_10y.toFixed(2) + '%');
-
-      // VIX — bandera de régimen
-      if (d.vix?.value) {
-        setEl('vix-val', d.vix.value.toFixed(1));
-        const vEl = document.getElementById('vix-val');
-        const vLbl = document.getElementById('vix-label');
-        const map = {
-          panic:    ['var(--down)', '🔴 pánico — risk-off'],
-          elevated: ['var(--warn)', '🟡 elevado — tensión'],
-          calm:     ['var(--up)',   'calma'],
-        };
-        const [color, label] = map[d.vix.signal] || ['var(--text)', '—'];
-        if (vEl) vEl.style.color = color;
-        if (vLbl) vLbl.textContent = label;
-      }
-
-      // Correlación BTC-DXY 30d
-      if (d.correlation?.btc_dxy_30d !== null && d.correlation?.btc_dxy_30d !== undefined) {
-        setEl('corr-dxy-val', d.correlation.btc_dxy_30d.toFixed(2));
-        const cEl = document.getElementById('corr-dxy-val');
-        // Negativa = régimen histórico normal (verde); positiva = anomalía (warn)
-        if (cEl) cEl.style.color = d.correlation.btc_dxy_30d < -0.2 ? 'var(--up)' : 'var(--warn)';
-      }
-
-      // Señal del Worker — una sola fuente de verdad
-      if (d.dxy?.signal_text) setEl('macro-signal-text', d.dxy.signal_text);
-    } catch (e) {
-      setEl('macro-signal-text', 'Macro USD no disponible: ' + e.message);
-    }
-  }
-
   async function fetchAll() {
     const btn = document.getElementById('refresh-btn');
     if (btn) btn.classList.add('spinning');
@@ -1815,10 +1558,7 @@
       fetchStellar(),
       fetchCharts(),
       fetchKorea(),
-      fetchSOXX(),
-      fetchWGMI(),
-      fetchBTC200W(),
-      fetchMacroUSD()
+      fetchSOXX()
     ]);
 
     // Bitso después de CoinGecko para tener cgPrices disponible
